@@ -23,6 +23,7 @@ class FingerprintFrameworkBaseImpl implements FingerprintFramework.FingerprintFr
 
     @Override
     public boolean isFingerprintPermissionGranted(Context context) {
-        return false;
+        // Explicitly return true to force hardware availability checking.
+        return true;
     }
 }
