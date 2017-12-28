@@ -2,12 +2,8 @@ package com.github.statiyanupanwong.android.compats.fingerprint.internal.respons
 
 import com.github.statiyanupanwong.android.compats.fingerprint.FingerprintResponse;
 
-public class DecryptionResponse extends FingerprintResponse {
+public final class DecryptionResponse extends FingerprintResponse {
     private final String mDecrypted;
-
-    public DecryptionResponse(FingerprintResult result, String message) {
-        this(result, message, null);
-    }
 
     public DecryptionResponse(FingerprintResult result, String message, String decrypted) {
         super(result, message);

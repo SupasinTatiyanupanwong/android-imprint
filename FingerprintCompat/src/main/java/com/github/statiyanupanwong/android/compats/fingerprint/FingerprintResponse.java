@@ -6,15 +6,19 @@ public abstract class FingerprintResponse {
     private final FingerprintResult mResult;
     private final String mMessage;
 
-    public FingerprintResponse(@NonNull FingerprintResult result, String message) {
+    public FingerprintResponse(@NonNull FingerprintResult result, @NonNull String message) {
         mResult = result;
         mMessage = message;
     }
 
+    public abstract String getData();
+
+    @NonNull
     public FingerprintResult getResult() {
         return mResult;
     }
 
+    @NonNull
     public String getMessage() {
         return mMessage;
     }
@@ -22,8 +26,6 @@ public abstract class FingerprintResponse {
     public boolean isSuccessful() {
         return mResult == FingerprintResult.AUTHENTICATED;
     }
-
-    public abstract String getData();
 
     public enum FingerprintResult {
         FAILED, HELP, AUTHENTICATED

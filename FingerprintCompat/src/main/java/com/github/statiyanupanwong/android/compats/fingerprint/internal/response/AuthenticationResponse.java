@@ -2,7 +2,7 @@ package com.github.statiyanupanwong.android.compats.fingerprint.internal.respons
 
 import com.github.statiyanupanwong.android.compats.fingerprint.FingerprintResponse;
 
-public class AuthenticationResponse extends FingerprintResponse {
+public final class AuthenticationResponse extends FingerprintResponse {
     public AuthenticationResponse(FingerprintResult result, String message) {
         super(result, message);
     }
