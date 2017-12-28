@@ -1,4 +1,5 @@
 package com.github.statiyanupanwong.android.compats.fingerprint;
 
-public abstract class FingerprintCompat {
+public enum CryptoAlgorithm {
+    AES, RSA
 }
