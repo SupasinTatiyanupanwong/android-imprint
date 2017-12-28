@@ -21,19 +21,19 @@ class FingerprintFramework {
         mContext = context;
     }
 
-    public FingerprintManager getFingerprintManager() {
+    FingerprintManager getFingerprintManager() {
         return IMPL.getFingerprintManager(mContext);
     }
 
-    public boolean isHardwareDetected() {
+    boolean isHardwareDetected() {
         return IMPL.isHardwareDetected(mContext);
     }
 
-    public boolean hasEnrolledFingerprints() {
+    boolean hasEnrolledFingerprints() {
         return IMPL.hasEnrolledFingerprints(mContext);
     }
 
-    public boolean isFingerprintPermissionGranted() {
+    boolean isFingerprintPermissionGranted() {
         return IMPL.isFingerprintPermissionGranted(mContext);
     }
 
