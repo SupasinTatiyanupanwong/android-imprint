@@ -5,6 +5,10 @@ import com.github.statiyanupanwong.android.compats.fingerprint.FingerprintRespon
 public final class EncryptionResponse extends FingerprintResponse {
     private final String mEncrypted;
 
+    public EncryptionResponse(FingerprintResult result, String message) {
+        this(result, message, null);
+    }
+
     public EncryptionResponse(FingerprintResult result, String message, String encrypted) {
         super(result, message);
         mEncrypted = encrypted;
