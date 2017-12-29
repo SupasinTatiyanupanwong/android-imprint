@@ -1,5 +1,21 @@
-android-compats-fingerprint
+Android FingerprintCompat Library
 ========
+A wrapper library to simplify fingerprint authentication on Android with a backward compatibility prior to Android M.
+
+Download
+--------
+Grab it via Gradle:
+
+**Step 1:** Add the JitPack repository to your build file
+```groovy
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+```
+**Step 2:** Add the dependency
+```groovy
+compile 'com.github.sTatiyanupanwong:android-compats-fingerprint:1.0.0'
+```
 
 License
 =======
