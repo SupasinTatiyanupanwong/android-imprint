@@ -4,17 +4,19 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
-import android.util.Base64;
 
 import com.github.statiyanupanwong.android.compats.fingerprint.exception.FingerprintAuthenticationException;
 import com.github.statiyanupanwong.android.compats.fingerprint.exception.FingerprintUnavailableException;
+import com.github.statiyanupanwong.android.compats.fingerprint.exception.SecretMessageException;
 import com.github.statiyanupanwong.android.compats.fingerprint.internal.DecryptionModeCryptoTask;
 import com.github.statiyanupanwong.android.compats.fingerprint.internal.EncryptionModeCryptoTask;
+import com.github.statiyanupanwong.android.compats.fingerprint.internal.SecretMessage;
 import com.github.statiyanupanwong.android.compats.fingerprint.internal.response.AuthenticationResponse;
 import com.github.statiyanupanwong.android.compats.fingerprint.internal.response.DecryptionResponse;
 import com.github.statiyanupanwong.android.compats.fingerprint.internal.response.EncryptionResponse;
 
 import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
 
 @TargetApi(23)
 @SuppressLint("MissingPermission")
@@ -28,66 +30,79 @@ class FingerprintCompatImpl extends FingerprintCompat {
     private static final String NOT_RECOGNIZE = "Fingerprint not recognized. Please try again.";
 
     private final FrameworkWrapper mFramework;
-    private final CryptoAlgorithm mAlgorithm;
     private final String mAlias;
 
     FingerprintCompatImpl(Context context) {
-        this(context, CryptoAlgorithm.AES);
-    }
-
-    FingerprintCompatImpl(Context context, CryptoAlgorithm algorithm) {
         mFramework = new FrameworkWrapper(context);
-        mAlgorithm = algorithm;
         mAlias = context.getPackageName();
     }
 
     @Override
     void authenticateImpl(AuthenticationCallback callback) {
-        if (checkPrecondition(callback)) {
+        if (isAvailable()) {
             mFramework.getFingerprintManager()
                     .authenticate(null,
                             null,
                             0,
                             wrapNativeCallbackForAuthentication(callback),
                             null);
+        } else {
+            onNotAvailable(callback);
         }
     }
 
     @Override
     void encryptImpl(final String toEncrypt, final EncryptionCallback callback) {
-        if (checkPrecondition(callback)) {
-            EncryptionModeCryptoTask.with(mAlgorithm, mAlias)
-                    .execute(new EncryptionModeCryptoTask.Callback() {
+        if (isAvailable()) {
+            EncryptionModeCryptoTask.with(mAlias,
+                    new EncryptionModeCryptoTask.EncryptionTaskCallback() {
                         @Override
-                        public void onCryptoTaskSucceeded(FingerprintManager.CryptoObject crypto) {
-                            mFramework.getFingerprintManager().authenticate(crypto, null, 0,
-                                    wrapNativeCallbackForEncryption(toEncrypt, callback), null);
+                        public void onEncryptionTaskSucceeded(
+                                FingerprintManager.CryptoObject cryptoObject) {
+                            mFramework.getFingerprintManager().authenticate(cryptoObject,
+                                    null,
+                                    0,
+                                    wrapNativeCallbackForEncryption(toEncrypt, callback),
+                                    null);
                         }
 
                         @Override
-                        public void onCryptoTaskFailed(Throwable throwable) {
+                        public void onEncryptionTaskFailed(Throwable throwable) {
                             callback.onEncryptionFailure(throwable);
                         }
-                    });
+                    }).execute();
+        } else {
+            onNotAvailable(callback);
         }
     }
 
     @Override
     void decryptImpl(final String toDecrypt, final DecryptionCallback callback) {
-        if (checkPrecondition(callback)) {
-            DecryptionModeCryptoTask.with(mAlgorithm, mAlias, toDecrypt)
-                    .execute(new DecryptionModeCryptoTask.Callback() {
-                        @Override
-                        public void onCryptoTaskSucceeded(FingerprintManager.CryptoObject crypto) {
-                            mFramework.getFingerprintManager().authenticate(crypto, null, 0,
-                                    wrapNativeCallbackForDecryption(toDecrypt, callback), null);
-                        }
+        if (isAvailable()) {
+            try {
+                DecryptionModeCryptoTask.with(mAlias, toDecrypt,
+                        new DecryptionModeCryptoTask.DecryptionTaskCallback() {
+                            @Override
+                            public void onDecryptionTaskSucceeded(
+                                    FingerprintManager.CryptoObject cryptoObject) {
+                                mFramework.getFingerprintManager().authenticate(cryptoObject,
+                                        null,
+                                        0,
+                                        wrapNativeCallbackForDecryption(toDecrypt, callback),
+                                        null);
+                            }
 
-                        @Override
-                        public void onCryptoTaskFailed(Throwable throwable) {
-                            callback.onDecryptionFailure(throwable);
-                        }
-                    });
+                            @Override
+                            public void onDecryptionTaskFailed(Throwable throwable) {
+                                callback.onDecryptionFailure(throwable);
+
+                            }
+                        }).execute();
+            } catch (SecretMessageException e) {
+                callback.onDecryptionFailure(e);
+            }
+        } else {
+            onNotAvailable(callback);
         }
     }
 
@@ -113,26 +128,12 @@ class FingerprintCompatImpl extends FingerprintCompat {
         return mFramework.isFingerprintPermissionGranted();
     }
 
-    private String encrypt(Cipher cipher, String initialText) throws Exception {
-        byte[] bytes = cipher.doFinal(initialText.getBytes());
-        return Base64.encodeToString(bytes, Base64.NO_WRAP);
-    }
-
-    private String decrypt(Cipher cipher, String cipherText) throws Exception {
-        byte[] bytes = Base64.decode(cipherText, Base64.NO_WRAP);
-        return new String(cipher.doFinal(bytes));
-    }
-
-    private boolean checkPrecondition(Object callback) {
-        if (!isAvailable()) {
-            if (isFingerprintPermissionGranted()) {
-                wrapUnavailableCallback(NOT_CAPABLE, callback);
-            } else {
-                wrapUnavailableCallback(NO_PERMISSION, callback);
-            }
-            return false;
+    private void onNotAvailable(Object callback) {
+        if (isFingerprintPermissionGranted()) {
+            wrapUnavailableCallback(NOT_CAPABLE, callback);
+        } else {
+            wrapUnavailableCallback(NO_PERMISSION, callback);
         }
-        return true;
     }
 
     private void wrapUnavailableCallback(String defMsg, Object callback) {
@@ -252,5 +253,21 @@ class FingerprintCompatImpl extends FingerprintCompat {
                         NOT_RECOGNIZE));
             }
         };
+    }
+
+    private String encrypt(Cipher cipher, String initialText) throws Exception {
+        byte[] encryptedBytes = cipher.doFinal(initialText.getBytes("UTF-8"));
+        byte[] ivBytes =
+                cipher.getParameters().getParameterSpec(IvParameterSpec.class).getIV();
+
+        String encryptedString =
+                SecretMessage.fromBytes(ivBytes, encryptedBytes).toString();
+        SecretMessage.verifySecretMessageString(encryptedString);
+        return encryptedString;
+    }
+
+    private String decrypt(Cipher cipher, String cipherText) throws Exception {
+        SecretMessage secretMessage = SecretMessage.fromString(cipherText);
+        return new String(cipher.doFinal(secretMessage.getMessage()));
     }
 }

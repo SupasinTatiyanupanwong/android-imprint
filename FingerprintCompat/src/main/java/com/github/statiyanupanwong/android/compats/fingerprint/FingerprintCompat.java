@@ -3,12 +3,12 @@ package com.github.statiyanupanwong.android.compats.fingerprint;
 import android.content.Context;
 
 public abstract class FingerprintCompat implements FingerprintCompatInterface {
-    public static FingerprintCompat with(Context context) {
+    public static FingerprintCompat of(Context context) {
         return new FingerprintCompatImpl(context);
     }
 
     public static boolean isAvailable(Context context) {
-        return with(context).isAvailable();
+        return of(context).isAvailable();
     }
 
     abstract boolean isAvailable();
@@ -28,6 +28,16 @@ public abstract class FingerprintCompat implements FingerprintCompatInterface {
     @Override
     public void authenticate(AuthenticationCallback callback) {
         authenticateImpl(callback);
+    }
+
+    @Override
+    public void encrypt(String toEncrypt, EncryptionCallback callback) {
+        encryptImpl(toEncrypt, callback);
+    }
+
+    @Override
+    public void decrypt(String toDecrypt, DecryptionCallback callback) {
+        decryptImpl(toDecrypt, callback);
     }
 
     public interface AuthenticationCallback {

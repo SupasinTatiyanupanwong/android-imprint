@@ -3,55 +3,101 @@ package com.github.statiyanupanwong.android.compats.fingerprint.internal;
 import android.annotation.TargetApi;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.AsyncTask;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyPermanentlyInvalidatedException;
+import android.security.keystore.KeyProperties;
+
+import java.security.KeyStore;
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
 @TargetApi(23)
-abstract class FingerprintCryptoTask {
+abstract class FingerprintCryptoTask extends AsyncTask<Void, Void, Boolean> {
+    private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
+    private final String mAlias;
+
+    private KeyStore mKeyStore;
     private Cipher mCipher;
+    private FingerprintManager.CryptoObject mCryptoObject;
     private Throwable mThrowable;
 
-    abstract Cipher getCipher() throws Exception;
-
-    public final void execute(Callback callback) {
-        new CryptoTask(callback).execute((Void) null);
+    FingerprintCryptoTask(String alias) {
+        mAlias = alias;
     }
 
-    public interface Callback {
-        void onCryptoTaskSucceeded(FingerprintManager.CryptoObject crypto);
+    abstract void initCipher(Cipher cipher, SecretKey secretKey) throws Exception;
 
-        void onCryptoTaskFailed(Throwable throwable);
+    abstract void onCryptoTaskSucceeded(FingerprintManager.CryptoObject cryptoObject);
+
+    abstract void onCryptoTaskFailed(Throwable throwable);
+
+    private void initKeystore() throws Exception {
+        mKeyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
+        mKeyStore.load(null);
     }
 
-    private class CryptoTask extends AsyncTask<Void, Void, Boolean> {
-        final Callback mCallback;
-
-        CryptoTask(Callback callback) {
-            mCallback = callback;
+    private void createNewKey(boolean forceCreate) throws Exception {
+        if (forceCreate) {
+            mKeyStore.deleteEntry(mAlias);
         }
 
-        private FingerprintManager.CryptoObject getCryptoObject(Cipher cipher) {
-            return new FingerprintManager.CryptoObject(cipher);
-        }
+        if (!mKeyStore.containsAlias(mAlias)) {
+            KeyGenerator generator = KeyGenerator.getInstance(
+                    KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
 
-        @Override
-        protected Boolean doInBackground(Void... voids) {
-            try {
-                mCipher = getCipher();
-                return true;
-            } catch (Exception e) {
-                mThrowable = e;
-                return false;
-            }
-        }
+            generator.init(new KeyGenParameterSpec.Builder(mAlias,
+                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                    .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                    .setUserAuthenticationRequired(true)
+                    .build()
+            );
 
-        @Override
-        protected final void onPostExecute(final Boolean isSuccess) {
-            if (isSuccess) {
-                mCallback.onCryptoTaskSucceeded(getCryptoObject(mCipher));
-            } else {
-                mCallback.onCryptoTaskFailed(mThrowable);
-            }
+            generator.generateKey();
+        }
+    }
+
+    private void createCipher() throws Exception {
+        try {
+            mCipher = Cipher.getInstance(
+                    KeyProperties.KEY_ALGORITHM_AES + "/"
+                            + KeyProperties.BLOCK_MODE_CBC + "/"
+                            + KeyProperties.ENCRYPTION_PADDING_PKCS7);
+
+            SecretKey secretKey = (SecretKey) mKeyStore.getKey(mAlias, null);
+
+            initCipher(mCipher, secretKey);
+        } catch (KeyPermanentlyInvalidatedException e) {
+            createNewKey(true);
+        }
+    }
+
+    private void initCryptoObject() {
+        mCryptoObject = new FingerprintManager.CryptoObject(mCipher);
+    }
+
+    @Override
+    protected final Boolean doInBackground(Void... params) {
+        try {
+            initKeystore();
+            createNewKey(false);
+            createCipher();
+            initCryptoObject();
+            return true;
+        } catch (Exception e) {
+            mThrowable = e;
+            return false;
+        }
+    }
+
+    @Override
+    protected final void onPostExecute(final Boolean isSuccess) {
+        if (isSuccess) {
+            onCryptoTaskSucceeded(mCryptoObject);
+        } else {
+            onCryptoTaskFailed(mThrowable);
         }
     }
 }

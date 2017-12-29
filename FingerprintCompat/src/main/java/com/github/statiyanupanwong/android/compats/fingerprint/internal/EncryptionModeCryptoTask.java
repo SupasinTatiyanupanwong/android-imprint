@@ -1,31 +1,40 @@
 package com.github.statiyanupanwong.android.compats.fingerprint.internal;
 
-import com.github.statiyanupanwong.android.compats.fingerprint.CryptoAlgorithm;
+import android.hardware.fingerprint.FingerprintManager;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 
 public class EncryptionModeCryptoTask extends FingerprintCryptoTask {
-    private final CryptoAlgorithm mMode;
-    private final String mAlias;
+    private final EncryptionTaskCallback mCallback;
 
-    public static EncryptionModeCryptoTask with(CryptoAlgorithm mode, String alias) {
-        return new EncryptionModeCryptoTask(mode, alias);
+    public static EncryptionModeCryptoTask with(String alias, EncryptionTaskCallback callback) {
+        return new EncryptionModeCryptoTask(alias, callback);
     }
 
-    private EncryptionModeCryptoTask(CryptoAlgorithm mode, String alias) {
-        mMode = mode;
-        mAlias = alias;
+    private EncryptionModeCryptoTask(String alias, EncryptionTaskCallback callback) {
+        super(alias);
+        mCallback = callback;
     }
 
     @Override
-    Cipher getCipher() throws Exception {
-        switch (mMode) {
-            case AES:
-                return new AesCipherProvider(mAlias).getCipherForEncryption();
-            case RSA:
-                return new RsaCipherProvider(mAlias).getCipherForEncryption();
-            default:
-                return null;
-        }
+    void initCipher(Cipher cipher, SecretKey secretKey) throws Exception {
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+    }
+
+    @Override
+    void onCryptoTaskSucceeded(FingerprintManager.CryptoObject cryptoObject) {
+        mCallback.onEncryptionTaskSucceeded(cryptoObject);
+    }
+
+    @Override
+    void onCryptoTaskFailed(Throwable throwable) {
+        mCallback.onEncryptionTaskFailed(throwable);
+    }
+
+    public interface EncryptionTaskCallback {
+        void onEncryptionTaskSucceeded(FingerprintManager.CryptoObject cryptoObject);
+
+        void onEncryptionTaskFailed(Throwable throwable);
     }
 }
