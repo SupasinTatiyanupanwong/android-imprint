@@ -8,15 +8,19 @@ import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.support.annotation.Nullable;
 
+/**
+ * Explicitly get fingerprint system service, regardless of feature declaration.
+ * See: https://issuetracker.google.com/issues/37132365
+ */
 @TargetApi(23)
 @SuppressLint("MissingPermission")
 class FingerprintFrameworkApi23Impl extends FingerprintFrameworkBaseImpl {
     @Nullable
     @Override
     public FingerprintManager getFingerprintManager(Context context) {
-        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
+        try {
             return (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
-        } else {
+        } catch (Exception ignored) {
             return null;
         }
     }
@@ -24,18 +28,36 @@ class FingerprintFrameworkApi23Impl extends FingerprintFrameworkBaseImpl {
     @Override
     public boolean hasEnrolledFingerprints(Context context) {
         final FingerprintManager fingerprintManager = getFingerprintManager(context);
-        return (fingerprintManager != null) && fingerprintManager.hasEnrolledFingerprints();
+        if (fingerprintManager == null) {
+            return false;
+        }
+        try {
+            return fingerprintManager.hasEnrolledFingerprints();
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     @Override
     public boolean isHardwareDetected(Context context) {
         final FingerprintManager fingerprintManager = getFingerprintManager(context);
-        return (fingerprintManager != null) && fingerprintManager.isHardwareDetected();
+        if (fingerprintManager == null) {
+            return false;
+        }
+        try {
+            return fingerprintManager.isHardwareDetected();
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     @Override
     public boolean isFingerprintPermissionGranted(Context context) {
-        return context.checkSelfPermission(
-                Manifest.permission.USE_FINGERPRINT) == PackageManager.PERMISSION_GRANTED;
+        try {
+            return context.checkSelfPermission(
+                    Manifest.permission.USE_FINGERPRINT) == PackageManager.PERMISSION_GRANTED;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 }
