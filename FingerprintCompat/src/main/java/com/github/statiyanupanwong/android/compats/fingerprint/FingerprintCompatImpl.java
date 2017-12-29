@@ -8,6 +8,8 @@ import android.util.Base64;
 
 import com.github.statiyanupanwong.android.compats.fingerprint.exception.FingerprintAuthenticationException;
 import com.github.statiyanupanwong.android.compats.fingerprint.exception.FingerprintUnavailableException;
+import com.github.statiyanupanwong.android.compats.fingerprint.internal.DecryptionModeCryptoTask;
+import com.github.statiyanupanwong.android.compats.fingerprint.internal.EncryptionModeCryptoTask;
 import com.github.statiyanupanwong.android.compats.fingerprint.internal.response.AuthenticationResponse;
 import com.github.statiyanupanwong.android.compats.fingerprint.internal.response.DecryptionResponse;
 import com.github.statiyanupanwong.android.compats.fingerprint.internal.response.EncryptionResponse;
@@ -27,6 +29,7 @@ class FingerprintCompatImpl extends FingerprintCompat {
 
     private final FingerprintFramework mFramework;
     private final CryptoAlgorithm mAlgorithm;
+    private final String mAlias;
 
     FingerprintCompatImpl(Context context) {
         this(context, CryptoAlgorithm.AES);
@@ -35,6 +38,7 @@ class FingerprintCompatImpl extends FingerprintCompat {
     FingerprintCompatImpl(Context context, CryptoAlgorithm algorithm) {
         mFramework = new FingerprintFramework(context);
         mAlgorithm = algorithm;
+        mAlias = context.getPackageName();
     }
 
     @Override
@@ -50,13 +54,41 @@ class FingerprintCompatImpl extends FingerprintCompat {
     }
 
     @Override
-    void encryptImpl(String toEncrypt, EncryptionCallback callback) {
-        // no-op yet
+    void encryptImpl(final String toEncrypt, final EncryptionCallback callback) {
+        if (checkPrecondition(callback)) {
+            EncryptionModeCryptoTask.with(mAlgorithm, mAlias)
+                    .execute(new EncryptionModeCryptoTask.Callback() {
+                        @Override
+                        public void onCryptoTaskSucceeded(FingerprintManager.CryptoObject crypto) {
+                            mFramework.getFingerprintManager().authenticate(crypto, null, 0,
+                                    wrapNativeCallbackForEncryption(toEncrypt, callback), null);
+                        }
+
+                        @Override
+                        public void onCryptoTaskFailed(Throwable throwable) {
+                            callback.onEncryptionFailure(throwable);
+                        }
+                    });
+        }
     }
 
     @Override
-    void decryptImpl(String toDecrypt, DecryptionCallback callback) {
-        // no-op yet
+    void decryptImpl(final String toDecrypt, final DecryptionCallback callback) {
+        if (checkPrecondition(callback)) {
+            DecryptionModeCryptoTask.with(mAlgorithm, mAlias, toDecrypt)
+                    .execute(new DecryptionModeCryptoTask.Callback() {
+                        @Override
+                        public void onCryptoTaskSucceeded(FingerprintManager.CryptoObject crypto) {
+                            mFramework.getFingerprintManager().authenticate(crypto, null, 0,
+                                    wrapNativeCallbackForDecryption(toDecrypt, callback), null);
+                        }
+
+                        @Override
+                        public void onCryptoTaskFailed(Throwable throwable) {
+                            callback.onDecryptionFailure(throwable);
+                        }
+                    });
+        }
     }
 
     @Override
