@@ -5,19 +5,19 @@ import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.support.annotation.Nullable;
 
-class FingerprintFramework {
-    private static final FingerprintFrameworkImpl IMPL;
+class FrameworkWrapper {
+    private static final FrameworkWrapperImpl IMPL;
     private final Context mContext;
 
     static {
         if (Build.VERSION.SDK_INT >= 23) {
-            IMPL = new FingerprintFrameworkApi23Impl();
+            IMPL = new FrameworkWrapperApi23Impl();
         } else {
-            IMPL = new FingerprintFrameworkBaseImpl();
+            IMPL = new FrameworkWrapperBaseImpl();
         }
     }
 
-    FingerprintFramework(Context context) {
+    FrameworkWrapper(Context context) {
         mContext = context;
     }
 
@@ -37,7 +37,7 @@ class FingerprintFramework {
         return IMPL.isFingerprintPermissionGranted(mContext);
     }
 
-    interface FingerprintFrameworkImpl {
+    interface FrameworkWrapperImpl {
         @Nullable
         FingerprintManager getFingerprintManager(Context context);
 

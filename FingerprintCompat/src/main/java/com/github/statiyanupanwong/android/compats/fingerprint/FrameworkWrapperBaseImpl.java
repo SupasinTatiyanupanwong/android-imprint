@@ -4,7 +4,7 @@ import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
 import android.support.annotation.Nullable;
 
-class FingerprintFrameworkBaseImpl implements FingerprintFramework.FingerprintFrameworkImpl {
+class FrameworkWrapperBaseImpl implements FrameworkWrapper.FrameworkWrapperImpl {
     @Nullable
     @Override
     public FingerprintManager getFingerprintManager(Context context) {

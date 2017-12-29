@@ -27,7 +27,7 @@ class FingerprintCompatImpl extends FingerprintCompat {
     private static final String RECOGNIZE = "Fingerprint recognized.";
     private static final String NOT_RECOGNIZE = "Fingerprint not recognized. Please try again.";
 
-    private final FingerprintFramework mFramework;
+    private final FrameworkWrapper mFramework;
     private final CryptoAlgorithm mAlgorithm;
     private final String mAlias;
 
@@ -36,7 +36,7 @@ class FingerprintCompatImpl extends FingerprintCompat {
     }
 
     FingerprintCompatImpl(Context context, CryptoAlgorithm algorithm) {
-        mFramework = new FingerprintFramework(context);
+        mFramework = new FrameworkWrapper(context);
         mAlgorithm = algorithm;
         mAlias = context.getPackageName();
     }

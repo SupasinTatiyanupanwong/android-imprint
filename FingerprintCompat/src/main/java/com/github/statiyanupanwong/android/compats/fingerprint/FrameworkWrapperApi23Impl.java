@@ -14,7 +14,7 @@ import android.support.annotation.Nullable;
  */
 @TargetApi(23)
 @SuppressLint("MissingPermission")
-class FingerprintFrameworkApi23Impl extends FingerprintFrameworkBaseImpl {
+class FrameworkWrapperApi23Impl extends FrameworkWrapperBaseImpl {
     @Nullable
     @Override
     public FingerprintManager getFingerprintManager(Context context) {
