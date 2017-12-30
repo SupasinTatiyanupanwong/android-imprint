@@ -29,15 +29,17 @@ Usage
 The following are FingerprintCompat APIs to interact with fingerprint service
 ```java
 FingerprintCompat.of((Context) this).authenticate((AuthenticationCallback) this);
-FingerprintCompat.of((Context) this).encrypt((EncryptionCallback) this);
-FingerprintCompat.of((Context) this).decrypt((DecryptionCallback) this);
+FingerprintCompat.of((Context) this).encrypt((String) toEncrypt, (EncryptionCallback) this);
+FingerprintCompat.of((Context) this).decrypt((String) toDecrypt, (DecryptionCallback) this);
 ```
 
-To check availability of fingerprint service, safe guard by
+To check availability of fingerprint authentication, safe guard by
 
 ```java
 if (FingerprintCompat.isAvailable(this)) {
-    // Call API here...
+    // Can use FingerprintCompat APIs here...
+} else {
+    // Provides fallback here...
 }
 ```
 
@@ -47,10 +49,36 @@ or explicitly handle from callback, for instance,
 @Override
 public void onAuthenticationFailed(Throwable throwable) {
     if (throwable instanceof FingerprintUnavailableException) {
-        // Fingerprint unavailable...
+        // Provides fallback here...
     }
 }
 ```
+
+3. Get response from callback
+
+For Encryption:
+
+```java
+@Override
+public void onEncryptionResponse(FingerprintResponse response) {
+    if (response.isSuccessful()) {
+        String encrypted = response.getData(); // This is an input to be given on decryption process.
+    }
+}
+```
+
+For Decryption:
+
+```java
+@Override
+public void onDecryptionResponse(FingerprintResponse response) {
+    if (response.isSuccessful()) {
+        String decrypted = response.getData(); // This is an input given on encryption process.
+    }
+}
+```
+
+IllegalStateException shall be thrown upon data retrieval if the fingerprint authentication was not successful or no cryptographic operations requested.
 
 License
 =======
