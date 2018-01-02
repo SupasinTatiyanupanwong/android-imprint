@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">FingerprintCompat Sample</string>
+    <string name="touch_me">Touch me!</string>
+    <string name="touch_sensor">Touch sensor</string>
+    <string name="encryption_failed">Encryption failed!</string>
+    <string name="decryption_failed">Decryption failed!</string>
 </resources>
