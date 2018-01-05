@@ -20,6 +20,8 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
+import android.os.CancellationSignal;
+import android.support.annotation.NonNull;
 
 import com.github.statiyanupanwong.android.compats.fingerprint.exception.FingerprintAuthenticationException;
 import com.github.statiyanupanwong.android.compats.fingerprint.exception.FingerprintUnavailableException;
@@ -43,24 +45,39 @@ class FingerprintCompatImpl extends FingerprintCompat {
             "Must have android.permission.USE_FINGERPRINT permission.";
 
     private static final String RECOGNIZE = "Fingerprint recognized.";
-    private static final String NOT_RECOGNIZE = "Fingerprint not recognized. Please try again.";
+    private static final String NOT_RECOGNIZE = "Fingerprint not recognized. Try again.";
 
     private final FrameworkWrapper mFramework;
-    private final String mAlias;
+    private CancellationSignal mCancellationSignal;
+    private String mAlias;
 
     FingerprintCompatImpl(Context context) {
         mFramework = new FrameworkWrapper(context);
+        mCancellationSignal = new CancellationSignal();
         mAlias = context.getPackageName();
+    }
+
+    @Override
+    public FingerprintCompat setAlias(@NonNull String cryptoAlias) {
+        mAlias = cryptoAlias;
+        return this;
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return isFingerprintPermissionGranted()
+                && isHardwareDetected()
+                && hasEnrolledFingerprints();
     }
 
     // Lint is being stupid. The nullability is being checked first before accessing APIs.
     @SuppressWarnings("ConstantConditions")
     @Override
-    void authenticateImpl(AuthenticationCallback callback) {
+    public void authenticate(@NonNull AuthenticationCallback callback) {
         if (isAvailable()) {
             mFramework.getFingerprintManager()
                     .authenticate(null,
-                            null,
+                            mCancellationSignal,
                             0,
                             wrapNativeCallbackForAuthentication(callback),
                             null);
@@ -72,7 +89,8 @@ class FingerprintCompatImpl extends FingerprintCompat {
     // Lint is being stupid. The nullability is being checked first before accessing APIs.
     @SuppressWarnings("ConstantConditions")
     @Override
-    void encryptImpl(final String toEncrypt, final EncryptionCallback callback) {
+    public void encrypt(@NonNull final String toEncrypt,
+            @NonNull final EncryptionCallback callback) {
         if (isAvailable()) {
             EncryptionModeCryptoTask.with(mAlias,
                     new EncryptionModeCryptoTask.EncryptionTaskCallback() {
@@ -80,7 +98,7 @@ class FingerprintCompatImpl extends FingerprintCompat {
                         public void onEncryptionTaskSucceeded(
                                 FingerprintManager.CryptoObject cryptoObject) {
                             mFramework.getFingerprintManager().authenticate(cryptoObject,
-                                    null,
+                                    mCancellationSignal,
                                     0,
                                     wrapNativeCallbackForEncryption(toEncrypt, callback),
                                     null);
@@ -99,7 +117,8 @@ class FingerprintCompatImpl extends FingerprintCompat {
     // Lint is being stupid. The nullability is being checked first before accessing APIs.
     @SuppressWarnings("ConstantConditions")
     @Override
-    void decryptImpl(final String toDecrypt, final DecryptionCallback callback) {
+    public void decrypt(@NonNull final String toDecrypt,
+            @NonNull final DecryptionCallback callback) {
         if (isAvailable()) {
             try {
                 DecryptionModeCryptoTask.with(mAlias, toDecrypt,
@@ -108,7 +127,7 @@ class FingerprintCompatImpl extends FingerprintCompat {
                             public void onDecryptionTaskSucceeded(
                                     FingerprintManager.CryptoObject cryptoObject) {
                                 mFramework.getFingerprintManager().authenticate(cryptoObject,
-                                        null,
+                                        mCancellationSignal,
                                         0,
                                         wrapNativeCallbackForDecryption(toDecrypt, callback),
                                         null);
@@ -129,10 +148,11 @@ class FingerprintCompatImpl extends FingerprintCompat {
     }
 
     @Override
-    boolean isAvailable() {
-        return isFingerprintPermissionGranted()
-                && isHardwareDetected()
-                && hasEnrolledFingerprints();
+    public void cancel() {
+        if (mCancellationSignal != null) {
+            mCancellationSignal.cancel();
+            mCancellationSignal = null;
+        }
     }
 
     @Override
@@ -226,7 +246,7 @@ class FingerprintCompatImpl extends FingerprintCompat {
                     callback.onEncryptionResponse(new EncryptionResponse(
                             FingerprintResponse.FingerprintResult.AUTHENTICATED,
                             RECOGNIZE,
-                            encrypt(result.getCryptoObject().getCipher(), toEncrypt)));
+                            encryptString(result.getCryptoObject().getCipher(), toEncrypt)));
                 } catch (Exception e) {
                     callback.onEncryptionFailure(e);
                 }
@@ -262,7 +282,7 @@ class FingerprintCompatImpl extends FingerprintCompat {
                     callback.onDecryptionResponse(new DecryptionResponse(
                             FingerprintResponse.FingerprintResult.AUTHENTICATED,
                             RECOGNIZE,
-                            decrypt(result.getCryptoObject().getCipher(), toDecrypt)));
+                            decryptString(result.getCryptoObject().getCipher(), toDecrypt)));
                 } catch (Exception e) {
                     callback.onDecryptionFailure(e);
                 }
@@ -277,7 +297,7 @@ class FingerprintCompatImpl extends FingerprintCompat {
         };
     }
 
-    private String encrypt(Cipher cipher, String initialText) throws Exception {
+    private String encryptString(Cipher cipher, String initialText) throws Exception {
         byte[] encryptedBytes = cipher.doFinal(initialText.getBytes("UTF-8"));
         byte[] ivBytes =
                 cipher.getParameters().getParameterSpec(IvParameterSpec.class).getIV();
@@ -288,7 +308,7 @@ class FingerprintCompatImpl extends FingerprintCompat {
         return encryptedString;
     }
 
-    private String decrypt(Cipher cipher, String cipherText) throws Exception {
+    private String decryptString(Cipher cipher, String cipherText) throws Exception {
         SecretMessage secretMessage = SecretMessage.fromString(cipherText);
         return new String(cipher.doFinal(secretMessage.getMessage()));
     }

@@ -31,6 +31,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button mButton;
     private TextView mTextView;
 
+    private FingerprintCompat mFingerprintCompat;
+
     private String mInitialText;
     private String mEncrypted;
 
@@ -39,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mFingerprintCompat = FingerprintCompat.of(this);
         mInitialText = "Test";
 
         mButton = findViewById(R.id.touch_me);
@@ -49,25 +52,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         if (mButton.equals(v)) {
-            mButton.setEnabled(false);
-            mTextView.setText(R.string.touch_sensor);
-            if (mEncrypted == null) {
-                FingerprintCompat.of(this).encrypt(mInitialText, this);
+            if (mFingerprintCompat.isAvailable()) {
+                mButton.setEnabled(false);
+                mTextView.setText(R.string.touch_sensor);
+                if (mEncrypted == null) {
+                    mFingerprintCompat.encrypt(mInitialText, this);
+                } else {
+                    mFingerprintCompat.decrypt(mEncrypted, this);
+                }
             } else {
-                FingerprintCompat.of(this).decrypt(mEncrypted, this);
+                mTextView.setText(R.string.operation_not_available);
             }
         }
+    }
+
+    @Override
+    protected void onPause() {
+        mFingerprintCompat.cancel();
+        super.onPause();
+        mTextView.setText(R.string.operation_canceled);
     }
 
     @Override
     public void onEncryptionResponse(FingerprintResponse response) {
         if (response.isSuccessful()) {
             mEncrypted = response.getData();
-            String str = "Initial text of \'" +
-                    mInitialText +
-                    "\' was encrypted to \'" +
-                    mEncrypted +
-                    "\'";
+            String str = "Initial text of '"
+                    + mInitialText
+                    + "' was encrypted to '"
+                    + mEncrypted
+                    + "'";
             mTextView.setText(str);
             mButton.setEnabled(true);
         }
@@ -83,11 +97,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onDecryptionResponse(FingerprintResponse response) {
         if (response.isSuccessful()) {
-            String str = "Encrypted text of \'" +
-                    mEncrypted +
-                    "\' was decrypted to \'" +
-                    response.getData() +
-                    "\'";
+            String str = "Encrypted text of '"
+                    + mEncrypted
+                    + "' was decrypted to '"
+                    + response.getData()
+                    + "'";
             mTextView.setText(str);
             mButton.setEnabled(true);
         }

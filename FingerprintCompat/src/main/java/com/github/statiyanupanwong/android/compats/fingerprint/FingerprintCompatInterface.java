@@ -19,12 +19,18 @@ package com.github.statiyanupanwong.android.compats.fingerprint;
 import android.support.annotation.NonNull;
 
 /**
- * Exposing public APIs of {@link FingerprintCompat FingerprintCompat} library.
+ * Exposing public APIs of {@link FingerprintCompat} library.
  */
 interface FingerprintCompatInterface {
+    FingerprintCompat setAlias(@NonNull String alias);
+
+    boolean isAvailable();
+
     void authenticate(@NonNull FingerprintCompat.AuthenticationCallback callback);
 
     void encrypt(@NonNull String toEncrypt, @NonNull FingerprintCompat.EncryptionCallback callback);
 
     void decrypt(@NonNull String toDecrypt, @NonNull FingerprintCompat.DecryptionCallback callback);
+
+    void cancel();
 }

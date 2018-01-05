@@ -16,46 +16,44 @@
 
 package com.github.statiyanupanwong.android.compats.fingerprint;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
 public abstract class FingerprintCompat implements FingerprintCompatInterface {
+    FingerprintCompat() {}
+
     public static FingerprintCompat of(@NonNull Context context) {
         return new FingerprintCompatImpl(context);
     }
 
-    public static boolean isAvailable(@NonNull Context context) {
-        return of(context).isAvailable();
-    }
+    @Override
+    public abstract FingerprintCompat setAlias(@NonNull String alias);
 
-    abstract boolean isAvailable();
+    @Override
+    public abstract boolean isAvailable();
+
+    @Override
+    public abstract void authenticate(@NonNull AuthenticationCallback callback);
+
+    @Override
+    public abstract void encrypt(@NonNull String toEncrypt, @NonNull EncryptionCallback callback);
+
+    @Override
+    public abstract void decrypt(@NonNull String toDecrypt, @NonNull DecryptionCallback callback);
+
+    /**
+     * Cancel an existing fingerprint operation on this {@link FingerprintCompat} object.
+     * Note that is must be called before {@link Activity#onPause()}
+     */
+    @Override
+    public abstract void cancel();
 
     abstract boolean isHardwareDetected();
 
     abstract boolean hasEnrolledFingerprints();
 
     abstract boolean isFingerprintPermissionGranted();
-
-    abstract void authenticateImpl(AuthenticationCallback callback);
-
-    abstract void encryptImpl(String toEncrypt, EncryptionCallback callback);
-
-    abstract void decryptImpl(String toDecrypt, DecryptionCallback callback);
-
-    @Override
-    public void authenticate(@NonNull AuthenticationCallback callback) {
-        authenticateImpl(callback);
-    }
-
-    @Override
-    public void encrypt(@NonNull String toEncrypt, @NonNull EncryptionCallback callback) {
-        encryptImpl(toEncrypt, callback);
-    }
-
-    @Override
-    public void decrypt(@NonNull String toDecrypt, @NonNull DecryptionCallback callback) {
-        decryptImpl(toDecrypt, callback);
-    }
 
     public interface AuthenticationCallback {
         void onAuthenticationResponse(FingerprintResponse response);
