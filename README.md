@@ -1,4 +1,4 @@
-Android FingerprintCompat Library
+Android Imprint Library
 ========
 A wrapper library to simplify fingerprint authentication on Android with a backward compatibility prior to Android M.
 
@@ -14,7 +14,7 @@ repositories {
 ```
 **Step 2:** Add the dependency
 ```groovy
-compile 'com.github.sTatiyanupanwong:android-compats-fingerprint:1.0.0'
+compile 'com.github.SupasinTatiyanupanwong:android-imprint:1.0.0'
 ```
 
 Usage
@@ -24,20 +24,20 @@ Usage
 <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
 ```
 
-2. Call FingerprintCompat APIs
+2. Call Imprint APIs
 
-The following are FingerprintCompat APIs to interact with fingerprint service
+The following are Imprint APIs to interact with fingerprint service
 ```java
-FingerprintCompat.of((Context) this).authenticate((AuthenticationCallback) this);
-FingerprintCompat.of((Context) this).encrypt((String) toEncrypt, (EncryptionCallback) this);
-FingerprintCompat.of((Context) this).decrypt((String) toDecrypt, (DecryptionCallback) this);
+Imprint.of((Context) this).authenticate((AuthenticationCallback) this);
+Imprint.of((Context) this).encrypt((String) toEncrypt, (EncryptionCallback) this);
+Imprint.of((Context) this).decrypt((String) toDecrypt, (DecryptionCallback) this);
 ```
 
 To check availability of fingerprint authentication, safe guard by
 
 ```java
-if (FingerprintCompat.isAvailable(this)) {
-    // Can use FingerprintCompat APIs here...
+if (Imprint.of((Context) this).isAvailable()) {
+    // Can use Imprint APIs here...
 } else {
     // Provides fallback here...
 }
@@ -77,8 +77,6 @@ public void onDecryptionResponse(FingerprintResponse response) {
     }
 }
 ```
-
-IllegalStateException shall be thrown upon data retrieval if the fingerprint authentication was not successful or no cryptographic operations requested.
 
 License
 =======

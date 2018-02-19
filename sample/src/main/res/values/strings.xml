@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FingerprintCompat Sample</string>
+    <string name="app_name">Imprint Sample</string>
 
     <string name="touch_me">Touch me!</string>
     <string name="touch_sensor">Touch sensor</string>
