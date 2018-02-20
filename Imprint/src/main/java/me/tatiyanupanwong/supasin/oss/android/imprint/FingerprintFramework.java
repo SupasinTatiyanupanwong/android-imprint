@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Supasin Tatiyanupanwong
+ * Copyright (C) 2017-2018 Supasin Tatiyanupanwong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@ import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.support.annotation.Nullable;
 
+/**
+ * Implements our own framework wrapper to explicitly get fingerprint system service.
+ * See: https://issuetracker.google.com/issues/37132365
+ */
 class FingerprintFramework {
     private static final FingerprintFrameworkImpl IMPL;
     private final Context mContext;

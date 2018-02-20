@@ -61,8 +61,8 @@ For Encryption:
 ```java
 @Override
 public void onEncryptionResponse(FingerprintResponse response) {
-    if (response.isSuccessful()) {
-        String encrypted = response.getData(); // This is an input to be given on decryption process.
+    if (response.getResult() == FingerprintResult.AUTHENTICATED) {
+        String encrypted = response.getEncrypted();
     }
 }
 ```
@@ -72,8 +72,8 @@ For Decryption:
 ```java
 @Override
 public void onDecryptionResponse(FingerprintResponse response) {
-    if (response.isSuccessful()) {
-        String decrypted = response.getData(); // This is an input given on encryption process.
+    if (response.getResult() == FingerprintResult.AUTHENTICATED) {
+        String decrypted = response.getDecrypted();
     }
 }
 ```
@@ -82,7 +82,7 @@ License
 =======
 
 ```
-Copyright (C) 2017 Supasin Tatiyanupanwong
+Copyright (C) 2017-2018 Supasin Tatiyanupanwong
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

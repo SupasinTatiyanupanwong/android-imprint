@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Supasin Tatiyanupanwong
+ * Copyright (C) 2017-2018 Supasin Tatiyanupanwong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,22 @@
 package me.tatiyanupanwong.supasin.oss.android.imprint;
 
 import android.content.Context;
+import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
+
+import me.tatiyanupanwong.supasin.oss.android.imprint.domain.AuthenticationResponse;
+import me.tatiyanupanwong.supasin.oss.android.imprint.domain.DecryptionResponse;
+import me.tatiyanupanwong.supasin.oss.android.imprint.domain.EncryptionResponse;
 
 public abstract class Imprint implements ImprintInterface {
     Imprint() {}
 
+    @CheckResult
     public static Imprint of(@NonNull Context context) {
         return new ImprintImpl(context);
     }
 
+    @CheckResult
     @Override
     public abstract Imprint setAlias(@NonNull String alias);
 
@@ -55,20 +62,20 @@ public abstract class Imprint implements ImprintInterface {
     abstract boolean isFingerprintPermissionGranted();
 
     public interface AuthenticationCallback {
-        void onAuthenticationResponse(FingerprintResponse response);
+        void onAuthenticationResponse(@NonNull AuthenticationResponse response);
 
-        void onAuthenticationFailure(Throwable throwable);
+        void onAuthenticationFailure(@NonNull Throwable throwable);
     }
 
     public interface DecryptionCallback {
-        void onDecryptionResponse(FingerprintResponse response);
+        void onDecryptionResponse(@NonNull DecryptionResponse response);
 
-        void onDecryptionFailure(Throwable throwable);
+        void onDecryptionFailure(@NonNull Throwable throwable);
     }
 
     public interface EncryptionCallback {
-        void onEncryptionResponse(FingerprintResponse response);
+        void onEncryptionResponse(@NonNull EncryptionResponse response);
 
-        void onEncryptionFailure(Throwable throwable);
+        void onEncryptionFailure(@NonNull Throwable throwable);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Supasin Tatiyanupanwong
+ * Copyright (C) 2017-2018 Supasin Tatiyanupanwong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,21 +33,19 @@ import javax.crypto.SecretKey;
 abstract class FingerprintCryptoTask extends AsyncTask<Void, Void, Boolean> {
     private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
     private final String mAlias;
+    private final Callback mCallback;
 
     private KeyStore mKeyStore;
     private Cipher mCipher;
     private FingerprintManager.CryptoObject mCryptoObject;
     private Throwable mThrowable;
 
-    FingerprintCryptoTask(String alias) {
+    FingerprintCryptoTask(String alias, Callback callback) {
         mAlias = alias;
+        mCallback = callback;
     }
 
     abstract void initCipher(Cipher cipher, SecretKey secretKey) throws Exception;
-
-    abstract void onCryptoTaskSucceeded(FingerprintManager.CryptoObject cryptoObject);
-
-    abstract void onCryptoTaskFailed(Throwable throwable);
 
     private void initKeystore() throws Exception {
         mKeyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
@@ -108,9 +106,15 @@ abstract class FingerprintCryptoTask extends AsyncTask<Void, Void, Boolean> {
     @Override
     protected final void onPostExecute(final Boolean isSuccess) {
         if (isSuccess) {
-            onCryptoTaskSucceeded(mCryptoObject);
+            mCallback.onTaskSucceeded(mCryptoObject);
         } else {
-            onCryptoTaskFailed(mThrowable);
+            mCallback.onTaskFailed(mThrowable);
         }
+    }
+
+    public interface Callback {
+        void onTaskSucceeded(FingerprintManager.CryptoObject cryptoObject);
+
+        void onTaskFailed(Throwable throwable);
     }
 }

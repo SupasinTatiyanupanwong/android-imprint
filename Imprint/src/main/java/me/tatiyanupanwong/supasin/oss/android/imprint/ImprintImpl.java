@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Supasin Tatiyanupanwong
+ * Copyright (C) 2017-2018 Supasin Tatiyanupanwong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,13 @@ import javax.crypto.spec.IvParameterSpec;
 import me.tatiyanupanwong.supasin.oss.android.imprint.domain.AuthenticationResponse;
 import me.tatiyanupanwong.supasin.oss.android.imprint.domain.DecryptionResponse;
 import me.tatiyanupanwong.supasin.oss.android.imprint.domain.EncryptionResponse;
+import me.tatiyanupanwong.supasin.oss.android.imprint.domain.FingerprintResult;
+import me.tatiyanupanwong.supasin.oss.android.imprint.exception.CryptoDataException;
 import me.tatiyanupanwong.supasin.oss.android.imprint.exception.FingerprintAuthenticationException;
 import me.tatiyanupanwong.supasin.oss.android.imprint.exception.FingerprintUnavailableException;
-import me.tatiyanupanwong.supasin.oss.android.imprint.exception.CryptoDataException;
 
 @TargetApi(23)
-@SuppressLint("MissingPermission")
+@SuppressLint("MissingPermission") // It is the caller's responsibility to handle permission
 class ImprintImpl extends Imprint {
     private static final String NOT_CAPABLE =
             "Fingerprint authentication is not available on this device.";
@@ -67,7 +68,7 @@ class ImprintImpl extends Imprint {
                 && hasEnrolledFingerprints();
     }
 
-    // Lint is being stupid. The nullability is being checked first before accessing APIs.
+    // Lint is being stupid. The nullability is being checked before accessing APIs.
     @SuppressWarnings("ConstantConditions")
     @Override
     public void authenticate(@NonNull AuthenticationCallback callback) {
@@ -83,16 +84,16 @@ class ImprintImpl extends Imprint {
         }
     }
 
-    // Lint is being stupid. The nullability is being checked first before accessing APIs.
+    // Lint is being stupid. The nullability is being checked before accessing APIs.
     @SuppressWarnings("ConstantConditions")
     @Override
     public void encrypt(@NonNull final String toEncrypt,
             @NonNull final EncryptionCallback callback) {
         if (isAvailable()) {
             EncryptionCryptoTask.with(mAlias,
-                    new EncryptionCryptoTask.EncryptionTaskCallback() {
+                    new EncryptionCryptoTask.Callback() {
                         @Override
-                        public void onEncryptionTaskSucceeded(
+                        public void onTaskSucceeded(
                                 FingerprintManager.CryptoObject cryptoObject) {
                             mFramework.getFingerprintManager().authenticate(cryptoObject,
                                     mCancellationSignal,
@@ -102,7 +103,7 @@ class ImprintImpl extends Imprint {
                         }
 
                         @Override
-                        public void onEncryptionTaskFailed(Throwable throwable) {
+                        public void onTaskFailed(Throwable throwable) {
                             callback.onEncryptionFailure(throwable);
                         }
                     }).execute();
@@ -111,7 +112,7 @@ class ImprintImpl extends Imprint {
         }
     }
 
-    // Lint is being stupid. The nullability is being checked first before accessing APIs.
+    // Lint is being stupid. The nullability is being checked before accessing APIs.
     @SuppressWarnings("ConstantConditions")
     @Override
     public void decrypt(@NonNull final String toDecrypt,
@@ -119,9 +120,9 @@ class ImprintImpl extends Imprint {
         if (isAvailable()) {
             try {
                 DecryptionCryptoTask.with(mAlias, toDecrypt,
-                        new DecryptionCryptoTask.DecryptionTaskCallback() {
+                        new DecryptionCryptoTask.Callback() {
                             @Override
-                            public void onDecryptionTaskSucceeded(
+                            public void onTaskSucceeded(
                                     FingerprintManager.CryptoObject cryptoObject) {
                                 mFramework.getFingerprintManager().authenticate(cryptoObject,
                                         mCancellationSignal,
@@ -131,7 +132,7 @@ class ImprintImpl extends Imprint {
                             }
 
                             @Override
-                            public void onDecryptionTaskFailed(Throwable throwable) {
+                            public void onTaskFailed(Throwable throwable) {
                                 callback.onDecryptionFailure(throwable);
 
                             }
@@ -202,21 +203,21 @@ class ImprintImpl extends Imprint {
             @Override
             public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
                 callback.onAuthenticationResponse(new AuthenticationResponse(
-                        FingerprintResponse.FingerprintResult.HELP,
+                        FingerprintResult.HELP,
                         helpString.toString()));
             }
 
             @Override
             public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
                 callback.onAuthenticationResponse(new AuthenticationResponse(
-                        FingerprintResponse.FingerprintResult.AUTHENTICATED,
+                        FingerprintResult.AUTHENTICATED,
                         RECOGNIZE));
             }
 
             @Override
             public void onAuthenticationFailed() {
                 callback.onAuthenticationResponse(new AuthenticationResponse(
-                        FingerprintResponse.FingerprintResult.FAILED,
+                        FingerprintResult.FAILED,
                         NOT_RECOGNIZE));
             }
         };
@@ -233,7 +234,7 @@ class ImprintImpl extends Imprint {
             @Override
             public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
                 callback.onEncryptionResponse(new EncryptionResponse(
-                        FingerprintResponse.FingerprintResult.HELP,
+                        FingerprintResult.HELP,
                         helpString.toString()));
             }
 
@@ -241,7 +242,7 @@ class ImprintImpl extends Imprint {
             public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
                 try {
                     callback.onEncryptionResponse(new EncryptionResponse(
-                            FingerprintResponse.FingerprintResult.AUTHENTICATED,
+                            FingerprintResult.AUTHENTICATED,
                             RECOGNIZE,
                             encryptString(result.getCryptoObject().getCipher(), toEncrypt)));
                 } catch (Exception e) {
@@ -252,7 +253,7 @@ class ImprintImpl extends Imprint {
             @Override
             public void onAuthenticationFailed() {
                 callback.onEncryptionResponse(new EncryptionResponse(
-                        FingerprintResponse.FingerprintResult.FAILED,
+                        FingerprintResult.FAILED,
                         NOT_RECOGNIZE));
             }
         };
@@ -269,7 +270,7 @@ class ImprintImpl extends Imprint {
             @Override
             public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
                 callback.onDecryptionResponse(new DecryptionResponse(
-                        FingerprintResponse.FingerprintResult.HELP,
+                        FingerprintResult.HELP,
                         helpString.toString()));
             }
 
@@ -277,7 +278,7 @@ class ImprintImpl extends Imprint {
             public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
                 try {
                     callback.onDecryptionResponse(new DecryptionResponse(
-                            FingerprintResponse.FingerprintResult.AUTHENTICATED,
+                            FingerprintResult.AUTHENTICATED,
                             RECOGNIZE,
                             decryptString(result.getCryptoObject().getCipher(), toDecrypt)));
                 } catch (Exception e) {
@@ -288,7 +289,7 @@ class ImprintImpl extends Imprint {
             @Override
             public void onAuthenticationFailed() {
                 callback.onDecryptionResponse(new DecryptionResponse(
-                        FingerprintResponse.FingerprintResult.FAILED,
+                        FingerprintResult.FAILED,
                         NOT_RECOGNIZE));
             }
         };

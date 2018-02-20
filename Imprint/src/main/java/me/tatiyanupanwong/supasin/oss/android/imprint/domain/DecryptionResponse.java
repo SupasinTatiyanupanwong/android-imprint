@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Supasin Tatiyanupanwong
+ * Copyright (C) 2017-2018 Supasin Tatiyanupanwong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package me.tatiyanupanwong.supasin.oss.android.imprint.domain;
 
 import android.support.annotation.NonNull;
 
-import me.tatiyanupanwong.supasin.oss.android.imprint.FingerprintResponse;
-
 public final class DecryptionResponse extends FingerprintResponse {
     private final String mDecrypted;
 
@@ -33,9 +31,8 @@ public final class DecryptionResponse extends FingerprintResponse {
     }
 
     @NonNull
-    @Override
-    public String getData() {
-        if (!isSuccessful()) {
+    public String getDecrypted() {
+        if (getResult() != FingerprintResult.AUTHENTICATED) {
             throw new IllegalStateException(
                     "Fingerprint authentication unsuccessful, cannot access decrypted data.");
         }

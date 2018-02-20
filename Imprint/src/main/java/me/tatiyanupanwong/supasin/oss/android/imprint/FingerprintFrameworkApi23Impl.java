@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Supasin Tatiyanupanwong
+ * Copyright (C) 2017-2018 Supasin Tatiyanupanwong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,8 @@ import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.support.annotation.Nullable;
 
-/**
- * Explicitly get fingerprint system service, regardless of feature declaration.
- * See: https://issuetracker.google.com/issues/37132365
- */
 @TargetApi(23)
-@SuppressLint("MissingPermission")
+@SuppressLint("MissingPermission") // It is the caller's responsibility to handle permission
 class FingerprintFrameworkApi23Impl extends FingerprintFrameworkBaseImpl {
     @Nullable
     @Override
@@ -37,7 +33,7 @@ class FingerprintFrameworkApi23Impl extends FingerprintFrameworkBaseImpl {
         try {
             return (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
         } catch (Exception ignored) {
-            return null;
+            return super.getFingerprintManager(context);
         }
     }
 
@@ -50,7 +46,7 @@ class FingerprintFrameworkApi23Impl extends FingerprintFrameworkBaseImpl {
         try {
             return fingerprintManager.hasEnrolledFingerprints();
         } catch (Exception ignored) {
-            return false;
+            return super.hasEnrolledFingerprints(context);
         }
     }
 
@@ -63,7 +59,7 @@ class FingerprintFrameworkApi23Impl extends FingerprintFrameworkBaseImpl {
         try {
             return fingerprintManager.isHardwareDetected();
         } catch (Exception ignored) {
-            return false;
+            return super.isHardwareDetected(context);
         }
     }
 
@@ -73,7 +69,7 @@ class FingerprintFrameworkApi23Impl extends FingerprintFrameworkBaseImpl {
             return context.checkSelfPermission(
                     Manifest.permission.USE_FINGERPRINT) == PackageManager.PERMISSION_GRANTED;
         } catch (Exception ignored) {
-            return false;
+            return super.isFingerprintPermissionGranted(context);
         }
     }
 }

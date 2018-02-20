@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Supasin Tatiyanupanwong
+ * Copyright (C) 2017-2018 Supasin Tatiyanupanwong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,8 @@
 
 package me.tatiyanupanwong.supasin.oss.android.imprint.domain;
 
-import android.support.annotation.NonNull;
-
-import me.tatiyanupanwong.supasin.oss.android.imprint.FingerprintResponse;
-
 public final class AuthenticationResponse extends FingerprintResponse {
     public AuthenticationResponse(FingerprintResult result, String message) {
         super(result, message);
-    }
-
-    @NonNull
-    @Override
-    public String getData() {
-        throw new IllegalStateException(
-                "There is no requested cryptographic operation, data is not available.");
     }
 }
