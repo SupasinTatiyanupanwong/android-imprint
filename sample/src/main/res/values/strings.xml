@@ -9,4 +9,6 @@
 
     <string name="encryption_failed">Encryption failed!</string>
     <string name="decryption_failed">Decryption failed!</string>
+
+    <string name="key_permanently_invalidated">Data is no longer accessible, we will have to encrypt again.</string>
 </resources>

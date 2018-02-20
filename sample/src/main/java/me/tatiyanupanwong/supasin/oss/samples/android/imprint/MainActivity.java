@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Supasin Tatiyanupanwong
+ * Copyright (C) 2017-2018 Supasin Tatiyanupanwong
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,18 @@
 package me.tatiyanupanwong.supasin.oss.samples.android.imprint;
 
 import android.os.Bundle;
+import android.security.keystore.KeyPermanentlyInvalidatedException;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import me.tatiyanupanwong.supasin.oss.android.imprint.Imprint;
-import me.tatiyanupanwong.supasin.oss.android.imprint.FingerprintResponse;
+import me.tatiyanupanwong.supasin.oss.android.imprint.domain.DecryptionResponse;
+import me.tatiyanupanwong.supasin.oss.android.imprint.domain.EncryptionResponse;
+import me.tatiyanupanwong.supasin.oss.android.imprint.domain.FingerprintResult;
 
 public class MainActivity extends AppCompatActivity
         implements View.OnClickListener, Imprint.EncryptionCallback, Imprint.DecryptionCallback {
@@ -41,7 +46,6 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mImprint = Imprint.of(this);
         mInitialText = "Test";
 
         mButton = findViewById(R.id.touch_me);
@@ -52,6 +56,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onClick(View v) {
         if (mButton.equals(v)) {
+            mImprint = Imprint.of(this);
             if (mImprint.isAvailable()) {
                 mButton.setEnabled(false);
                 mTextView.setText(R.string.touch_sensor);
@@ -68,48 +73,68 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onPause() {
-        mImprint.cancel();
+        if (mImprint != null) {
+            mImprint.cancel();
+            mImprint = null;
+            mTextView.setText(R.string.operation_canceled);
+        }
         super.onPause();
-        mTextView.setText(R.string.operation_canceled);
     }
 
     @Override
-    public void onEncryptionResponse(FingerprintResponse response) {
-        if (response.isSuccessful()) {
-            mEncrypted = response.getData();
-            String str = "Initial text of '"
+    public void onEncryptionResponse(@NonNull EncryptionResponse response) {
+        if (response.getResult() == FingerprintResult.AUTHENTICATED) {
+            mImprint = null;
+            mEncrypted = response.getEncrypted();
+            String str = "{"
                     + mInitialText
-                    + "' was encrypted to '"
+                    + " -> "
                     + mEncrypted
-                    + "'";
+                    + "}";
             mTextView.setText(str);
             mButton.setEnabled(true);
+        } else {
+            mTextView.setText(response.getMessage());
         }
     }
 
     @Override
-    public void onEncryptionFailure(Throwable throwable) {
-        mTextView.setText(R.string.encryption_failed);
+    public void onEncryptionFailure(@NonNull Throwable throwable) {
+        mImprint = null;
+        mTextView.setText(TextUtils.isEmpty(throwable.getMessage())
+                ? getString(R.string.encryption_failed)
+                : throwable.getMessage());
         mButton.setEnabled(true);
         throwable.printStackTrace();
     }
 
     @Override
-    public void onDecryptionResponse(FingerprintResponse response) {
-        if (response.isSuccessful()) {
-            String str = "Encrypted text of '"
+    public void onDecryptionResponse(@NonNull DecryptionResponse response) {
+        if (response.getResult() == FingerprintResult.AUTHENTICATED) {
+            mImprint = null;
+            String str = "{"
                     + mEncrypted
-                    + "' was decrypted to '"
-                    + response.getData()
-                    + "'";
+                    + " -> "
+                    + response.getDecrypted()
+                    + "}";
             mTextView.setText(str);
             mButton.setEnabled(true);
+        } else {
+            mTextView.setText(response.getMessage());
         }
     }
 
     @Override
-    public void onDecryptionFailure(Throwable throwable) {
-        mTextView.setText(R.string.decryption_failed);
+    public void onDecryptionFailure(@NonNull Throwable throwable) {
+        mImprint = null;
+        if (throwable instanceof KeyPermanentlyInvalidatedException) {
+            mEncrypted = null;
+            mTextView.setText(R.string.key_permanently_invalidated);
+        } else {
+            mTextView.setText(TextUtils.isEmpty(throwable.getMessage())
+                    ? getString(R.string.decryption_failed)
+                    : throwable.getMessage());
+        }
         mButton.setEnabled(true);
         throwable.printStackTrace();
     }
