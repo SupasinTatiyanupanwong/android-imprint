@@ -17,7 +17,6 @@
 package me.tatiyanupanwong.supasin.oss.android.imprint;
 
 import android.annotation.TargetApi;
-import android.hardware.fingerprint.FingerprintManager;
 import android.os.AsyncTask;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
@@ -30,17 +29,16 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 @TargetApi(23)
-abstract class FingerprintCryptoTask extends AsyncTask<Void, Void, Boolean> {
+abstract class FingerprintCipherTask extends AsyncTask<Void, Void, Boolean> {
     private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
     private final String mAlias;
     private final Callback mCallback;
 
     private KeyStore mKeyStore;
     private Cipher mCipher;
-    private FingerprintManager.CryptoObject mCryptoObject;
     private Throwable mThrowable;
 
-    FingerprintCryptoTask(String alias, Callback callback) {
+    FingerprintCipherTask(String alias, Callback callback) {
         mAlias = alias;
         mCallback = callback;
     }
@@ -85,17 +83,12 @@ abstract class FingerprintCryptoTask extends AsyncTask<Void, Void, Boolean> {
         }
     }
 
-    private void initCryptoObject() {
-        mCryptoObject = new FingerprintManager.CryptoObject(mCipher);
-    }
-
     @Override
     protected final Boolean doInBackground(Void... params) {
         try {
             initKeystore();
             initSecretKey();
             createCipher();
-            initCryptoObject();
             return true;
         } catch (Exception e) {
             mThrowable = e;
@@ -106,14 +99,14 @@ abstract class FingerprintCryptoTask extends AsyncTask<Void, Void, Boolean> {
     @Override
     protected final void onPostExecute(final Boolean isSuccess) {
         if (isSuccess) {
-            mCallback.onTaskSucceeded(mCryptoObject);
+            mCallback.onTaskSucceeded(mCipher);
         } else {
             mCallback.onTaskFailed(mThrowable);
         }
     }
 
     public interface Callback {
-        void onTaskSucceeded(FingerprintManager.CryptoObject cryptoObject);
+        void onTaskSucceeded(Cipher cipher);
 
         void onTaskFailed(Throwable throwable);
     }

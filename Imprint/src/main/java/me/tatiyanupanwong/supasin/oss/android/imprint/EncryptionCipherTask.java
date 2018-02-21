@@ -19,13 +19,13 @@ package me.tatiyanupanwong.supasin.oss.android.imprint;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
-final class EncryptionCryptoTask extends FingerprintCryptoTask {
-    private EncryptionCryptoTask(String alias, Callback callback) {
+final class EncryptionCipherTask extends FingerprintCipherTask {
+    private EncryptionCipherTask(String alias, Callback callback) {
         super(alias, callback);
     }
 
-    public static EncryptionCryptoTask with(String alias, Callback callback) {
-        return new EncryptionCryptoTask(alias, callback);
+    public static EncryptionCipherTask with(String alias, Callback callback) {
+        return new EncryptionCipherTask(alias, callback);
     }
 
     @Override

@@ -20,24 +20,21 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-import me.tatiyanupanwong.supasin.oss.android.imprint.exception.CryptoDataException;
+final class DecryptionCipherTask extends FingerprintCipherTask {
+    private final String mToDecrypt;
 
-final class DecryptionCryptoTask extends FingerprintCryptoTask {
-    private final CryptoData mCryptoData;
-
-    private DecryptionCryptoTask(String alias, String cryptoDataString,
-            Callback callback) throws CryptoDataException {
+    private DecryptionCipherTask(String alias, String toDecrypt, Callback callback) {
         super(alias, callback);
-        mCryptoData = CryptoData.fromString(cryptoDataString);
+        mToDecrypt = toDecrypt;
     }
 
-    static DecryptionCryptoTask with(String alias, String cryptoDataString,
-            Callback callback) throws CryptoDataException {
-        return new DecryptionCryptoTask(alias, cryptoDataString, callback);
+    static DecryptionCipherTask with(String alias, String toDecrypt, Callback callback) {
+        return new DecryptionCipherTask(alias, toDecrypt, callback);
     }
 
     @Override
     void initCipher(Cipher cipher, SecretKey secretKey) throws Exception {
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(mCryptoData.getIv()));
+        CryptoData cryptoData = CryptoData.fromString(mToDecrypt);
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(cryptoData.getIv()));
     }
 }
