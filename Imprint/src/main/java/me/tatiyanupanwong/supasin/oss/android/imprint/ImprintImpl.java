@@ -30,7 +30,6 @@ import me.tatiyanupanwong.supasin.oss.android.imprint.domain.AuthenticationRespo
 import me.tatiyanupanwong.supasin.oss.android.imprint.domain.DecryptionResponse;
 import me.tatiyanupanwong.supasin.oss.android.imprint.domain.EncryptionResponse;
 import me.tatiyanupanwong.supasin.oss.android.imprint.domain.FingerprintResult;
-import me.tatiyanupanwong.supasin.oss.android.imprint.exception.CryptoDataException;
 import me.tatiyanupanwong.supasin.oss.android.imprint.exception.FingerprintAuthenticationException;
 import me.tatiyanupanwong.supasin.oss.android.imprint.exception.FingerprintUnavailableException;
 
@@ -51,7 +50,6 @@ class ImprintImpl extends Imprint {
 
     ImprintImpl(Context context) {
         mFramework = new FingerprintFramework(context);
-        mCancellationSignal = new CancellationSignal();
         mAlias = context.getPackageName();
     }
 
@@ -68,78 +66,33 @@ class ImprintImpl extends Imprint {
                 && hasEnrolledFingerprints();
     }
 
-    // Lint is being stupid. The nullability is being checked before accessing APIs.
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void authenticate(@NonNull AuthenticationCallback callback) {
         if (isAvailable()) {
-            mFramework.getFingerprintManager()
-                    .authenticate(null,
-                            mCancellationSignal,
-                            0,
-                            wrapNativeCallbackForAuthentication(callback),
-                            null);
+            createCancellationSignal();
+            authenticateInternal(callback);
         } else {
             onNotAvailable(callback);
         }
     }
 
-    // Lint is being stupid. The nullability is being checked before accessing APIs.
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void encrypt(@NonNull final String toEncrypt,
             @NonNull final EncryptionCallback callback) {
         if (isAvailable()) {
-            EncryptionCryptoTask.with(mAlias,
-                    new EncryptionCryptoTask.Callback() {
-                        @Override
-                        public void onTaskSucceeded(
-                                FingerprintManager.CryptoObject cryptoObject) {
-                            mFramework.getFingerprintManager().authenticate(cryptoObject,
-                                    mCancellationSignal,
-                                    0,
-                                    wrapNativeCallbackForEncryption(toEncrypt, callback),
-                                    null);
-                        }
-
-                        @Override
-                        public void onTaskFailed(Throwable throwable) {
-                            callback.onEncryptionFailure(throwable);
-                        }
-                    }).execute();
+            createCancellationSignal();
+            encryptInternal(toEncrypt, callback);
         } else {
             onNotAvailable(callback);
         }
     }
 
-    // Lint is being stupid. The nullability is being checked before accessing APIs.
-    @SuppressWarnings("ConstantConditions")
     @Override
     public void decrypt(@NonNull final String toDecrypt,
             @NonNull final DecryptionCallback callback) {
         if (isAvailable()) {
-            try {
-                DecryptionCryptoTask.with(mAlias, toDecrypt,
-                        new DecryptionCryptoTask.Callback() {
-                            @Override
-                            public void onTaskSucceeded(
-                                    FingerprintManager.CryptoObject cryptoObject) {
-                                mFramework.getFingerprintManager().authenticate(cryptoObject,
-                                        mCancellationSignal,
-                                        0,
-                                        wrapNativeCallbackForDecryption(toDecrypt, callback),
-                                        null);
-                            }
-
-                            @Override
-                            public void onTaskFailed(Throwable throwable) {
-                                callback.onDecryptionFailure(throwable);
-
-                            }
-                        }).execute();
-            } catch (CryptoDataException e) {
-                callback.onDecryptionFailure(e);
-            }
+            createCancellationSignal();
+            decryptInternal(toDecrypt, callback);
         } else {
             onNotAvailable(callback);
         }
@@ -166,6 +119,67 @@ class ImprintImpl extends Imprint {
     @Override
     boolean isFingerprintPermissionGranted() {
         return mFramework.isFingerprintPermissionGranted();
+    }
+
+    // Lint is being stupid. The nullability is being checked before accessing APIs.
+    @SuppressWarnings("ConstantConditions")
+    private void authenticateInternal(@NonNull AuthenticationCallback callback) {
+        mFramework.getFingerprintManager()
+                .authenticate(null,
+                        mCancellationSignal,
+                        0,
+                        wrapNativeCallbackForAuthentication(callback),
+                        null);
+    }
+
+    // Lint is being stupid. The nullability is being checked before accessing APIs.
+    @SuppressWarnings("ConstantConditions")
+    private void encryptInternal(@NonNull final String toEncrypt,
+            @NonNull final EncryptionCallback callback) {
+        EncryptionCipherTask.with(mAlias, new FingerprintCipherTask.Callback() {
+            @Override
+            public void onTaskSucceeded(Cipher cipher) {
+                mFramework.getFingerprintManager()
+                        .authenticate(new FingerprintManager.CryptoObject(cipher),
+                                mCancellationSignal,
+                                0,
+                                wrapNativeCallbackForEncryption(toEncrypt, callback),
+                                null);
+            }
+
+            @Override
+            public void onTaskFailed(Throwable throwable) {
+                callback.onEncryptionFailure(throwable);
+            }
+        }).execute();
+    }
+
+    // Lint is being stupid. The nullability is being checked before accessing APIs.
+    @SuppressWarnings("ConstantConditions")
+    private void decryptInternal(@NonNull final String toDecrypt,
+            @NonNull final DecryptionCallback callback) {
+        DecryptionCipherTask.with(mAlias, toDecrypt, new FingerprintCipherTask.Callback() {
+            @Override
+            public void onTaskSucceeded(Cipher cipher) {
+                mFramework.getFingerprintManager()
+                        .authenticate(new FingerprintManager.CryptoObject(cipher),
+                                mCancellationSignal,
+                                0,
+                                wrapNativeCallbackForDecryption(toDecrypt, callback),
+                                null);
+            }
+
+            @Override
+            public void onTaskFailed(Throwable throwable) {
+                callback.onDecryptionFailure(throwable);
+
+            }
+        }).execute();
+    }
+
+    private void createCancellationSignal() {
+        cancel();
+        mCancellationSignal = new CancellationSignal();
     }
 
     private void onNotAvailable(Object callback) {
