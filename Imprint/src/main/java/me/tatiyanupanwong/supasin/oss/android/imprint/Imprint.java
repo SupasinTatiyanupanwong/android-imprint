@@ -32,19 +32,37 @@ public abstract class Imprint implements ImprintInterface {
         return new ImprintImpl(context);
     }
 
+    /**
+     * Set name of the key in the keystore to use
+     */
     @CheckResult
     @Override
     public abstract Imprint setAlias(@NonNull String alias);
 
+    /**
+     * Check availability of fingerprint authentication.
+     *
+     * @return {@code true} if fingerprint authentication is available.
+     */
     @Override
     public abstract boolean isAvailable();
 
+    /**
+     * Authenticate the user with his fingerprint.
+     */
     @Override
     public abstract void authenticate(@NonNull AuthenticationCallback callback);
 
+    /**
+     * Encrypt data and authenticate the user with his fingerprint. All encrypted data can
+     * only be accessed again by calling {@link #decrypt(String, Imprint.DecryptionCallback)}
+     */
     @Override
     public abstract void encrypt(@NonNull String toEncrypt, @NonNull EncryptionCallback callback);
 
+    /**
+     * Decrypt data previously encrypted with {@link #encrypt(String, Imprint.EncryptionCallback)}.
+     */
     @Override
     public abstract void decrypt(@NonNull String toDecrypt, @NonNull DecryptionCallback callback);
 

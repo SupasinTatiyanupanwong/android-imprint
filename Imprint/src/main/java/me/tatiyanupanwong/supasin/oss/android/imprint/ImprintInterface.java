@@ -19,7 +19,7 @@ package me.tatiyanupanwong.supasin.oss.android.imprint;
 import android.support.annotation.NonNull;
 
 /**
- * Exposes public APIs of the library.
+ * Exposes public APIs of {@link Imprint} library.
  */
 interface ImprintInterface {
     Imprint setAlias(@NonNull String alias);
