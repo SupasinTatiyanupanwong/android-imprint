@@ -14,69 +14,35 @@ repositories {
 ```
 **Step 2:** Add the dependency
 ```groovy
-compile 'com.github.SupasinTatiyanupanwong:android-imprint:1.0.0'
+implementation 'com.github.SupasinTatiyanupanwong:android-imprint:1.0.0-beta2'
 ```
 
 Usage
 --------
-1. Add android.permission.USE_FINGERPRINT in AndroidManifest
+1. Add `android.permission.USE_FINGERPRINT` in AndroidManifest
 ```xml
 <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
 ```
 
-2. Call Imprint APIs
-
-The following are Imprint APIs to interact with fingerprint service
+2. Instantiate an instance of `Imprint`
 ```java
-Imprint.of((Context) this).authenticate((AuthenticationCallback) this);
-Imprint.of((Context) this).encrypt((String) toEncrypt, (EncryptionCallback) this);
-Imprint.of((Context) this).decrypt((String) toDecrypt, (DecryptionCallback) this);
+private Imprint mImprint;
+mImprint = Imprint.of((Context) this);
 ```
 
-To check availability of fingerprint authentication, safe guard by
+3. Call `Imprint` APIs to interact with fingerprint services
+
+3.1 You can safe guard the operation by using `Imprint#isAvailable()`
+
+3.2 `Imprint` allows you to authenticate your user, encrypt or decrypt your user data as follows
 
 ```java
-if (Imprint.of((Context) this).isAvailable()) {
-    // Can use Imprint APIs here...
-} else {
-    // Provides fallback here...
-}
+mImprint.authenticate((AuthenticationCallback) this);
+mImprint.encrypt((String) toEncrypt, (EncryptionCallback) this);
+mImprint.decrypt((String) toDecrypt, (DecryptionCallback) this);
 ```
 
-or explicitly handle from callback, for instance,
-
-```java
-@Override
-public void onAuthenticationFailed(Throwable throwable) {
-    if (throwable instanceof FingerprintUnavailableException) {
-        // Provides fallback here...
-    }
-}
-```
-
-3. Get response from callback
-
-For Encryption:
-
-```java
-@Override
-public void onEncryptionResponse(FingerprintResponse response) {
-    if (response.getResult() == FingerprintResult.AUTHENTICATED) {
-        String encrypted = response.getEncrypted();
-    }
-}
-```
-
-For Decryption:
-
-```java
-@Override
-public void onDecryptionResponse(FingerprintResponse response) {
-    if (response.getResult() == FingerprintResult.AUTHENTICATED) {
-        String decrypted = response.getDecrypted();
-    }
-}
-```
+3.3 To cancel the operation, simply call `Imprint#cancel()`. Note that this must be called before `Activity#onPause()`
 
 License
 =======
