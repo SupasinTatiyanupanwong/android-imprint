@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.tatiyanupanwong.supasin.oss.android.imprint;
+package me.tatiyanupanwong.supasin.android.imprint;
 
 import android.annotation.TargetApi;
 import android.os.AsyncTask;

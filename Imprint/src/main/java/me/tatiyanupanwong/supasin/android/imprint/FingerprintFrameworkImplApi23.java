@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package me.tatiyanupanwong.supasin.oss.android.imprint;
+package me.tatiyanupanwong.supasin.android.imprint;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
-import android.support.annotation.Nullable;
 
 @TargetApi(23)
 @SuppressLint("MissingPermission") // It is the caller's responsibility to handle permission
-class FingerprintFrameworkApi23Impl extends FingerprintFrameworkBaseImpl {
-    @Nullable
+class FingerprintFrameworkImplApi23 extends FingerprintFrameworkImplBase {
     @Override
     public FingerprintManager getFingerprintManager(Context context) {
         try {
@@ -60,16 +56,6 @@ class FingerprintFrameworkApi23Impl extends FingerprintFrameworkBaseImpl {
             return fingerprintManager.isHardwareDetected();
         } catch (Exception ignored) {
             return super.isHardwareDetected(context);
-        }
-    }
-
-    @Override
-    public boolean isFingerprintPermissionGranted(Context context) {
-        try {
-            return context.checkSelfPermission(
-                    Manifest.permission.USE_FINGERPRINT) == PackageManager.PERMISSION_GRANTED;
-        } catch (Exception ignored) {
-            return super.isFingerprintPermissionGranted(context);
         }
     }
 }

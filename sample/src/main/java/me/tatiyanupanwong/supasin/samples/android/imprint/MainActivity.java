@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.tatiyanupanwong.supasin.oss.samples.android.imprint;
+package me.tatiyanupanwong.supasin.samples.android.imprint;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -26,13 +26,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import me.tatiyanupanwong.supasin.oss.android.imprint.Imprint;
-import me.tatiyanupanwong.supasin.oss.android.imprint.domain.DecryptionResponse;
-import me.tatiyanupanwong.supasin.oss.android.imprint.domain.EncryptionResponse;
-import me.tatiyanupanwong.supasin.oss.android.imprint.domain.FingerprintResult;
+import me.tatiyanupanwong.supasin.android.imprint.Imprint;
+import me.tatiyanupanwong.supasin.android.imprint.domain.DecryptionResponse;
+import me.tatiyanupanwong.supasin.android.imprint.domain.EncryptionResponse;
+import me.tatiyanupanwong.supasin.android.imprint.domain.FingerprintResult;
 
-public class MainActivity extends AppCompatActivity
-        implements View.OnClickListener, Imprint.EncryptionCallback, Imprint.DecryptionCallback {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener,
+        Imprint.EncryptionCallback, Imprint.DecryptionCallback {
     private ViewHolder mViews;
     private Imprint mImprint;
 
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mViews = new ViewHolder(this);
-        mImprint = Imprint.of(this);
+        mImprint = Imprint.from(this);
 
         mInitialText = "Test";
 
@@ -52,8 +52,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onClick(View v) {
-        if (mViews.button.equals(v)) {
+    public void onClick(View view) {
+        if (view == mViews.button) {
             if (mImprint.isAvailable()) {
                 mViews.button.setEnabled(false);
                 mViews.textView.setText(R.string.touch_sensor);

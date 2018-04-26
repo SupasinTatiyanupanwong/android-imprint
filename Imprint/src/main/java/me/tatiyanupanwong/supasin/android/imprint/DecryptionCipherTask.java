@@ -14,22 +14,27 @@
  * limitations under the License.
  */
 
-package me.tatiyanupanwong.supasin.oss.android.imprint;
+package me.tatiyanupanwong.supasin.android.imprint;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
-final class EncryptionCipherTask extends FingerprintCipherTask {
-    private EncryptionCipherTask(String alias, Callback callback) {
+final class DecryptionCipherTask extends FingerprintCipherTask {
+    private final String mToDecrypt;
+
+    private DecryptionCipherTask(String alias, String toDecrypt, Callback callback) {
         super(alias, callback);
+        mToDecrypt = toDecrypt;
     }
 
-    public static EncryptionCipherTask with(String alias, Callback callback) {
-        return new EncryptionCipherTask(alias, callback);
+    static DecryptionCipherTask with(String alias, String toDecrypt, Callback callback) {
+        return new DecryptionCipherTask(alias, toDecrypt, callback);
     }
 
     @Override
     void initCipher(Cipher cipher, SecretKey secretKey) throws Exception {
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        CryptoData cryptoData = CryptoData.fromString(mToDecrypt);
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(cryptoData.getIv()));
     }
 }

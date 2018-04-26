@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package me.tatiyanupanwong.supasin.oss.android.imprint;
+package me.tatiyanupanwong.supasin.android.imprint;
 
 import android.text.TextUtils;
 import android.util.Base64;
-
-import me.tatiyanupanwong.supasin.oss.android.imprint.exception.CryptoDataException;
 
 final class CryptoData {
     private static final String SEPARATOR = "::";
@@ -41,16 +39,16 @@ final class CryptoData {
         return new CryptoData(ivBytes, messageBytes);
     }
 
-    static CryptoData fromString(String input) throws CryptoDataException {
+    static CryptoData fromString(String input) throws Imprint.CryptoDataException {
         verifyCryptoDataString(input);
 
         String[] inputParams = input.split(SEPARATOR);
         return new CryptoData(inputParams[0], inputParams[1]);
     }
 
-    static void verifyCryptoDataString(String input) throws CryptoDataException {
+    static void verifyCryptoDataString(String input) throws Imprint.CryptoDataException {
         if (TextUtils.isEmpty(input) || !input.contains(SEPARATOR)) {
-            throw new CryptoDataException();
+            throw new Imprint.CryptoDataException();
         }
     }
 

@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-package me.tatiyanupanwong.supasin.oss.android.imprint.domain;
+package me.tatiyanupanwong.supasin.android.imprint;
 
-public final class AuthenticationResponse extends FingerprintResponse {
-    public AuthenticationResponse(FingerprintResult result, String message) {
-        super(result, message);
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+
+final class EncryptionCipherTask extends FingerprintCipherTask {
+    private EncryptionCipherTask(String alias, Callback callback) {
+        super(alias, callback);
+    }
+
+    public static EncryptionCipherTask with(String alias, Callback callback) {
+        return new EncryptionCipherTask(alias, callback);
+    }
+
+    @Override
+    void initCipher(Cipher cipher, SecretKey secretKey) throws Exception {
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
     }
 }
