@@ -28,6 +28,9 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+/**
+ * @author Supasin Tatiyanupanwong
+ */
 @TargetApi(23)
 abstract class FingerprintCipherTask extends AsyncTask<Void, Void, Boolean> {
     private static final String ANDROID_KEY_STORE = "AndroidKeyStore";

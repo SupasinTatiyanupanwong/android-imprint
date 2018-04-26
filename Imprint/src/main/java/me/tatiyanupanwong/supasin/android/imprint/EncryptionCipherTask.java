@@ -19,6 +19,9 @@ package me.tatiyanupanwong.supasin.android.imprint;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
+/**
+ * @author Supasin Tatiyanupanwong
+ */
 final class EncryptionCipherTask extends FingerprintCipherTask {
     private EncryptionCipherTask(String alias, Callback callback) {
         super(alias, callback);

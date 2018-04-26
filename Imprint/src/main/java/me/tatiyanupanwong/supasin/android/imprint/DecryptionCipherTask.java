@@ -20,6 +20,9 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
+/**
+ * @author Supasin Tatiyanupanwong
+ */
 final class DecryptionCipherTask extends FingerprintCipherTask {
     private final String mToDecrypt;
 

@@ -19,10 +19,13 @@ package me.tatiyanupanwong.supasin.android.imprint;
 import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
+import android.support.annotation.Nullable;
 
 /**
  * Implements our own framework wrapper to explicitly get fingerprint system service.
  * See: https://issuetracker.google.com/issues/37132365
+ *
+ * @author Supasin Tatiyanupanwong
  */
 final class FingerprintFramework {
     private static final Impl IMPL;
@@ -41,6 +44,7 @@ final class FingerprintFramework {
         mContext = context;
     }
 
+    @Nullable
     FingerprintManager getFingerprintManager() {
         return IMPL.getFingerprintManager(mContext);
     }
@@ -54,6 +58,7 @@ final class FingerprintFramework {
     }
 
     interface Impl {
+        @Nullable
         FingerprintManager getFingerprintManager(Context context);
 
         boolean isHardwareDetected(Context context);

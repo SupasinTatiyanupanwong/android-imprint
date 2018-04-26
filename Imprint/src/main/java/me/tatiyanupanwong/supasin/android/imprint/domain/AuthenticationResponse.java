@@ -16,6 +16,9 @@
 
 package me.tatiyanupanwong.supasin.android.imprint.domain;
 
+/**
+ * @author Supasin Tatiyanupanwong
+ */
 public final class AuthenticationResponse extends FingerprintResponse {
     public AuthenticationResponse(FingerprintResult result, String message) {
         super(result, message);

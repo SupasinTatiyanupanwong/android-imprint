@@ -18,8 +18,13 @@ package me.tatiyanupanwong.supasin.android.imprint;
 
 import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
+import android.support.annotation.Nullable;
 
+/**
+ * @author Supasin Tatiyanupanwong
+ */
 class FingerprintFrameworkImplBase implements FingerprintFramework.Impl {
+    @Nullable
     @Override
     public FingerprintManager getFingerprintManager(Context context) {
         return null;

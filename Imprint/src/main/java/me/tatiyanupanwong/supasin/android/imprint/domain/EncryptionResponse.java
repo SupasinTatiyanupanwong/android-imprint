@@ -16,6 +16,11 @@
 
 package me.tatiyanupanwong.supasin.android.imprint.domain;
 
+import android.support.annotation.NonNull;
+
+/**
+ * @author Supasin Tatiyanupanwong
+ */
 public final class EncryptionResponse extends FingerprintResponse {
     private final String mEncrypted;
 
@@ -28,6 +33,7 @@ public final class EncryptionResponse extends FingerprintResponse {
         mEncrypted = encrypted;
     }
 
+    @NonNull
     public String getEncrypted() {
         if (getResult() != FingerprintResult.AUTHENTICATED) {
             throw new IllegalStateException(

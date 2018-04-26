@@ -21,6 +21,8 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.CancellationSignal;
+import android.support.annotation.CheckResult;
+import android.support.annotation.NonNull;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -30,6 +32,9 @@ import me.tatiyanupanwong.supasin.android.imprint.domain.DecryptionResponse;
 import me.tatiyanupanwong.supasin.android.imprint.domain.EncryptionResponse;
 import me.tatiyanupanwong.supasin.android.imprint.domain.FingerprintResult;
 
+/**
+ * @author Supasin Tatiyanupanwong
+ */
 @SuppressWarnings({ "WeakerAccess", "unused" }) // Public API
 public abstract class Imprint {
     Imprint() {}
@@ -37,14 +42,16 @@ public abstract class Imprint {
     /**
      * Get a {@link Imprint.Impl} instance for a provided {@code context}.
      */
-    public static Imprint from(Context context) {
+    @CheckResult
+    public static Imprint from(@NonNull Context context) {
         return new Impl(context);
     }
 
     /**
      * Set name of the key in the keystore to use
      */
-    public abstract Imprint setAlias(String alias);
+    @CheckResult
+    public abstract Imprint setAlias(@NonNull String alias);
 
     /**
      * Check availability of fingerprint authentication.
@@ -56,18 +63,18 @@ public abstract class Imprint {
     /**
      * Authenticate the user with his/her fingerprint.
      */
-    public abstract void authenticate(AuthenticationCallback callback);
+    public abstract void authenticate(@NonNull AuthenticationCallback callback);
 
     /**
      * Encrypt data and authenticate the user with his/her fingerprint. All encrypted data can
      * only be accessed again by calling {@link Imprint#decrypt(String, DecryptionCallback)}
      */
-    public abstract void encrypt(String toEncrypt, EncryptionCallback callback);
+    public abstract void encrypt(@NonNull String toEncrypt, @NonNull EncryptionCallback callback);
 
     /**
      * Decrypt data previously encrypted with {@link Imprint#encrypt(String, EncryptionCallback)}.
      */
-    public abstract void decrypt(String toDecrypt, DecryptionCallback callback);
+    public abstract void decrypt(@NonNull String toDecrypt, @NonNull DecryptionCallback callback);
 
     /**
      * Cancel an existing fingerprint operation on this {@link Imprint} object.
@@ -84,12 +91,12 @@ public abstract class Imprint {
         /**
          * Invoked for a success or recoverable operation.
          */
-        void onAuthenticationResponse(AuthenticationResponse response);
+        void onAuthenticationResponse(@NonNull AuthenticationResponse response);
 
         /**
          * Invoked for a failure operation.
          */
-        void onAuthenticationFailure(Throwable throwable);
+        void onAuthenticationFailure(@NonNull Throwable throwable);
     }
 
     /**
@@ -101,12 +108,12 @@ public abstract class Imprint {
         /**
          * Invoked for a success or recoverable operation.
          */
-        void onEncryptionResponse(EncryptionResponse response);
+        void onEncryptionResponse(@NonNull EncryptionResponse response);
 
         /**
          * Invoked for a failure operation.
          */
-        void onEncryptionFailure(Throwable throwable);
+        void onEncryptionFailure(@NonNull Throwable throwable);
     }
 
     /**
@@ -118,12 +125,12 @@ public abstract class Imprint {
         /**
          * Invoked for a success or recoverable operation.
          */
-        void onDecryptionResponse(DecryptionResponse response);
+        void onDecryptionResponse(@NonNull DecryptionResponse response);
 
         /**
          * Invoked for a failure operation.
          */
-        void onDecryptionFailure(Throwable throwable);
+        void onDecryptionFailure(@NonNull Throwable throwable);
     }
 
 
@@ -143,13 +150,14 @@ public abstract class Imprint {
         private CancellationSignal mCancellationSignal;
         private String mAlias;
 
-        Impl(Context context) {
+        Impl(@NonNull Context context) {
             mFramework = new FingerprintFramework(context);
             mAlias = context.getPackageName();
         }
 
+        @CheckResult
         @Override
-        public Imprint setAlias(String cryptoAlias) {
+        public Imprint setAlias(@NonNull String cryptoAlias) {
             mAlias = cryptoAlias;
             return this;
         }
@@ -160,7 +168,7 @@ public abstract class Imprint {
         }
 
         @Override
-        public void authenticate(AuthenticationCallback callback) {
+        public void authenticate(@NonNull AuthenticationCallback callback) {
             if (isAvailable()) {
                 createCancellationSignal();
                 authenticateInternal(callback);
@@ -170,7 +178,7 @@ public abstract class Imprint {
         }
 
         @Override
-        public void encrypt(final String toEncrypt, final EncryptionCallback callback) {
+        public void encrypt(@NonNull String toEncrypt, @NonNull EncryptionCallback callback) {
             if (isAvailable()) {
                 createCancellationSignal();
                 encryptInternal(toEncrypt, callback);
@@ -180,7 +188,7 @@ public abstract class Imprint {
         }
 
         @Override
-        public void decrypt(final String toDecrypt, final DecryptionCallback callback) {
+        public void decrypt(@NonNull String toDecrypt, @NonNull DecryptionCallback callback) {
             if (isAvailable()) {
                 createCancellationSignal();
                 decryptInternal(toDecrypt, callback);
@@ -199,7 +207,7 @@ public abstract class Imprint {
 
         // Lint is being stupid. The nullability is being checked before accessing APIs.
         @SuppressWarnings("ConstantConditions")
-        private void authenticateInternal(AuthenticationCallback callback) {
+        private void authenticateInternal(@NonNull AuthenticationCallback callback) {
             mFramework.getFingerprintManager()
                     .authenticate(null,
                             mCancellationSignal,
@@ -210,7 +218,8 @@ public abstract class Imprint {
 
         // Lint is being stupid. The nullability is being checked before accessing APIs.
         @SuppressWarnings("ConstantConditions")
-        private void encryptInternal(final String toEncrypt, final EncryptionCallback callback) {
+        private void encryptInternal(@NonNull final String toEncrypt,
+                @NonNull final EncryptionCallback callback) {
             EncryptionCipherTask.with(mAlias, new FingerprintCipherTask.Callback() {
                 @Override
                 public void onTaskSucceeded(Cipher cipher) {
@@ -231,7 +240,8 @@ public abstract class Imprint {
 
         // Lint is being stupid. The nullability is being checked before accessing APIs.
         @SuppressWarnings("ConstantConditions")
-        private void decryptInternal(final String toDecrypt, final DecryptionCallback callback) {
+        private void decryptInternal(@NonNull final String toDecrypt,
+                @NonNull final DecryptionCallback callback) {
             DecryptionCipherTask.with(mAlias, toDecrypt, new FingerprintCipherTask.Callback() {
                 @Override
                 public void onTaskSucceeded(Cipher cipher) {

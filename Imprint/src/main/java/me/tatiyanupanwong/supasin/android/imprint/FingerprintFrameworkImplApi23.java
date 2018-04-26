@@ -20,10 +20,15 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
+import android.support.annotation.Nullable;
 
+/**
+ * @author Supasin Tatiyanupanwong
+ */
 @TargetApi(23)
 @SuppressLint("MissingPermission") // It is the caller's responsibility to handle permission
 class FingerprintFrameworkImplApi23 extends FingerprintFrameworkImplBase {
+    @Nullable
     @Override
     public FingerprintManager getFingerprintManager(Context context) {
         try {

@@ -19,6 +19,9 @@ package me.tatiyanupanwong.supasin.android.imprint;
 import android.text.TextUtils;
 import android.util.Base64;
 
+/**
+ * @author Supasin Tatiyanupanwong
+ */
 final class CryptoData {
     private static final String SEPARATOR = "::";
 
