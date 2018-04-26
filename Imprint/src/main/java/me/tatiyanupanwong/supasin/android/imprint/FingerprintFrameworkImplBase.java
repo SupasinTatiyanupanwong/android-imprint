@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package me.tatiyanupanwong.supasin.oss.android.imprint.exception;
+package me.tatiyanupanwong.supasin.android.imprint;
 
-public class FingerprintUnavailableException extends Exception {
-    private static final long serialVersionUID = -7106965054150661182L;
+import android.content.Context;
+import android.hardware.fingerprint.FingerprintManager;
 
-    public FingerprintUnavailableException(CharSequence errString) {
-        super(errString.toString());
+class FingerprintFrameworkImplBase implements FingerprintFramework.Impl {
+    @Override
+    public FingerprintManager getFingerprintManager(Context context) {
+        return null;
+    }
+
+    @Override
+    public boolean isHardwareDetected(Context context) {
+        return false;
+    }
+
+    @Override
+    public boolean hasEnrolledFingerprints(Context context) {
+        return false;
     }
 }

@@ -14,34 +14,33 @@
  * limitations under the License.
  */
 
-package me.tatiyanupanwong.supasin.oss.android.imprint;
+package me.tatiyanupanwong.supasin.android.imprint;
 
 import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
-import android.support.annotation.Nullable;
 
 /**
  * Implements our own framework wrapper to explicitly get fingerprint system service.
  * See: https://issuetracker.google.com/issues/37132365
  */
-class FingerprintFramework {
-    private static final FingerprintFrameworkImpl IMPL;
-    private final Context mContext;
+final class FingerprintFramework {
+    private static final Impl IMPL;
 
     static {
         if (Build.VERSION.SDK_INT >= 23) {
-            IMPL = new FingerprintFrameworkApi23Impl();
+            IMPL = new FingerprintFrameworkImplApi23();
         } else {
-            IMPL = new FingerprintFrameworkBaseImpl();
+            IMPL = new FingerprintFrameworkImplBase();
         }
     }
+
+    private final Context mContext;
 
     FingerprintFramework(Context context) {
         mContext = context;
     }
 
-    @Nullable
     FingerprintManager getFingerprintManager() {
         return IMPL.getFingerprintManager(mContext);
     }
@@ -54,18 +53,11 @@ class FingerprintFramework {
         return IMPL.hasEnrolledFingerprints(mContext);
     }
 
-    boolean isFingerprintPermissionGranted() {
-        return IMPL.isFingerprintPermissionGranted(mContext);
-    }
-
-    interface FingerprintFrameworkImpl {
-        @Nullable
+    interface Impl {
         FingerprintManager getFingerprintManager(Context context);
 
         boolean isHardwareDetected(Context context);
 
         boolean hasEnrolledFingerprints(Context context);
-
-        boolean isFingerprintPermissionGranted(Context context);
     }
 }

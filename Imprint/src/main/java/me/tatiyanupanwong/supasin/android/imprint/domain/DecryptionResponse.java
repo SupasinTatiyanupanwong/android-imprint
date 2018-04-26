@@ -14,28 +14,25 @@
  * limitations under the License.
  */
 
-package me.tatiyanupanwong.supasin.oss.android.imprint.domain;
+package me.tatiyanupanwong.supasin.android.imprint.domain;
 
-import android.support.annotation.NonNull;
+public final class DecryptionResponse extends FingerprintResponse {
+    private final String mDecrypted;
 
-public final class EncryptionResponse extends FingerprintResponse {
-    private final String mEncrypted;
-
-    public EncryptionResponse(FingerprintResult result, String message) {
+    public DecryptionResponse(FingerprintResult result, String message) {
         this(result, message, null);
     }
 
-    public EncryptionResponse(FingerprintResult result, String message, String encrypted) {
+    public DecryptionResponse(FingerprintResult result, String message, String decrypted) {
         super(result, message);
-        mEncrypted = encrypted;
+        mDecrypted = decrypted;
     }
 
-    @NonNull
-    public String getEncrypted() {
+    public String getDecrypted() {
         if (getResult() != FingerprintResult.AUTHENTICATED) {
             throw new IllegalStateException(
-                    "Fingerprint authentication unsuccessful, cannot access encrypted data.");
+                    "Fingerprint authentication unsuccessful, cannot access decrypted data.");
         }
-        return mEncrypted;
+        return mDecrypted;
     }
 }

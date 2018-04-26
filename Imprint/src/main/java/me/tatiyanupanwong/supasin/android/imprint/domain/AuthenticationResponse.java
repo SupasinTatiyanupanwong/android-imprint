@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package me.tatiyanupanwong.supasin.oss.android.imprint.exception;
+package me.tatiyanupanwong.supasin.android.imprint.domain;
 
-public class FingerprintAuthenticationException extends Exception {
-    private static final long serialVersionUID = -1134223020407641595L;
-
-    public FingerprintAuthenticationException(CharSequence errString) {
-        super(errString.toString());
+public final class AuthenticationResponse extends FingerprintResponse {
+    public AuthenticationResponse(FingerprintResult result, String message) {
+        super(result, message);
     }
 }
