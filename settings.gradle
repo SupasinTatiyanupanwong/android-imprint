@@ -1,1 +1,1 @@
-include ':Imprint', ':sample'
+include ':imprint', ':sample'
